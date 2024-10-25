@@ -1222,9 +1222,9 @@ export default {
     },
 
     async resolveLayoutRoles () {
-      this.resolvingLayoutRoles = true
-
       if (this.currentLayoutRoles.length) {
+        this.resolvingLayoutRoles = true
+
         Promise.all(this.currentLayoutRoles.map(roleID => {
           if (this.resolvedRoles[roleID]) {
             return Promise.resolve()
