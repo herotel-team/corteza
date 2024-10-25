@@ -72,7 +72,7 @@ export interface Options {
   openRecordInEditMode: boolean;
 
   textStyles: {
-    noWrapFields: Array<string>
+    wrappedFields: Array<string>
   }
 }
 
@@ -132,7 +132,7 @@ const defaults: Readonly<Options> = Object.freeze({
   openRecordInEditMode: false,
 
   textStyles: {
-    noWrapFields: [],
+    wrappedFields: [],
   },
 })
 
@@ -218,7 +218,10 @@ export class PageBlockRecordList extends PageBlock {
     }
 
     if (o.textStyles) {
-      this.options.textStyles = o.textStyles
+      this.options.textStyles = {
+        ...this.options.textStyles,
+        ...o.textStyles,
+      }
     }
   }
 
