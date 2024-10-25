@@ -41,6 +41,7 @@
             :selected-field="selectedField"
             :namespace="namespace"
             :mock.sync="mock"
+            start-empty
             @prevent-close="onValueChange"
           />
         </b-card-body>
@@ -306,7 +307,7 @@ export default {
       // If no filterGroups, add default
       if (!this.componentFilter.length) {
         this.componentFilter.push(this.createDefaultFilterGroup(undefined, this.selectedField))
-      } else if (!this.inFilter) {
+      } else if (this.selectedField && !this.inFilter) {
         this.addFilter(0)
       }
     },
