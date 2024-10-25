@@ -473,9 +473,7 @@
                     :namespace="namespace"
                     :extra-options="options"
                   />
-                  <div
-                    class="inline-actions"
-                  >
+                  <div class="d-flex flex-nowrap align-items-start inline-actions">
                     <b-button
                       v-if="options.inlineRecordEditEnabled && field.canEdit && !showingDeletedRecords"
                       v-b-tooltip.noninteractive.hover="{ title: $t('recordList.inlineEdit.button.title'), container: '#body' }"
@@ -2318,11 +2316,9 @@ tr:hover td.actions {
 }
 
 .inline-actions {
-  min-width: 30px;
   margin-top: -2px;
   opacity: 0;
   transition: opacity 0.25s;
-  display: flex;
 }
 
 td:hover .inline-actions {
