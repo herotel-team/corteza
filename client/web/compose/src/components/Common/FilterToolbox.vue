@@ -76,14 +76,13 @@
 
           <b-td
             v-if="getField(filter.name)"
-            class="align-middle"
             style="width: 1%;"
           >
             <b-button
               :id="`${groupIndex}-${index}`"
               ref="delete"
               variant="outline-extra-light"
-              class="d-block text-dark border-0 h-full ml-2 px-2"
+              class="d-block text-dark border-0 h-full ml-2 px-2 mt-1"
               @click="deleteFilter(groupIndex, index)"
             >
               <font-awesome-icon
@@ -486,7 +485,6 @@ export default {
 td {
   padding: 0;
   padding-bottom: 0.5rem;
-  vertical-align: middle;
 }
 
 .btn-add-group {
