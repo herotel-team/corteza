@@ -2298,15 +2298,19 @@ export default {
   cursor: pointer;
 }
 
-th .required::after {
-  content: "*";
-  display: inline-block;
-  color: var(--primary);
-  vertical-align: sub;
-  margin-left: 2px;
-  width: 10px;
-  height: 16px;
-  overflow: hidden;
+th {
+  min-width: 13rem;
+
+  &.required::after {
+    content: "*";
+    display: inline-block;
+    color: var(--primary);
+    vertical-align: sub;
+    margin-left: 2px;
+    width: 10px;
+    height: 16px;
+    overflow: hidden;
+  }
 }
 
 tr:hover td.actions {
