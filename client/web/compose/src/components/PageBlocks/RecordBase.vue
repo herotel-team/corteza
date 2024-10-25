@@ -213,6 +213,20 @@ export default {
         }
       },
     },
+
+    'record.values': {
+      deep: true,
+      handler (newValues = {}) {
+        if (this.options.referenceField) {
+          const { recordID: oldValue } = this.referenceRecord || {}
+          const newValue = newValues[this.options.referenceField]
+
+          if (oldValue !== newValue) {
+            this.loadRecord(this.referenceModule)
+          }
+        }
+      },
+    },
   },
 
   beforeDestroy () {
