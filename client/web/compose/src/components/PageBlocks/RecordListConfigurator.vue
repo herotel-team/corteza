@@ -141,11 +141,11 @@
                   size="sm"
                   variant="light"
                   :module="recordListModule"
-                  :fields="options.textStyles.noWrapFields || []"
+                  :fields="options.textStyles.wrappedFields || []"
                   :field-subset="options.fields.length ? options.fields : recordListModule.fields"
                   @updateFields="onUpdateTextWrapOption"
                 >
-                  {{ $t('recordList.record.configureNonWrappingFelids') }}
+                  {{ $t('recordList.record.configureWrappedFields') }}
                 </column-picker>
               </b-form-group>
             </b-col>
@@ -1064,8 +1064,8 @@ export default {
     },
 
     onUpdateTextWrapOption (fields = []) {
-      if (this.options.textStyles.noWrapFields) {
-        this.options.textStyles.noWrapFields = fields.map(f => f.fieldID)
+      if (this.options.textStyles.wrappedFields) {
+        this.options.textStyles.wrappedFields = fields.map(f => f.fieldID)
       }
     },
   },

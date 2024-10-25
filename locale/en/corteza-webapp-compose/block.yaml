@@ -570,7 +570,7 @@ recordList:
     recordSelectorDisplayOptions: On record value click
     addRecordOptions: On add record click
     textStyles: Text Styles
-    configureNonWrappingFelids: Configure non-wrapping fields
+    configureWrappedFields: Select fields that will be wrapped
     showFullText: Show full text
   recordPage: record page
   refField:

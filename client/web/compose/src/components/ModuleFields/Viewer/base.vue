@@ -73,7 +73,7 @@ export default {
 
       if (this.field.isMulti) {
         classes.push('multiline')
-      } else if (textStyles.noWrapFields && textStyles.noWrapFields.includes(fieldID)) {
+      } else if (!textStyles.wrappedFields || !textStyles.wrappedFields.includes(fieldID)) {
         classes.push('text-nowrap')
       }
 
