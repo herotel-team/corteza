@@ -118,7 +118,7 @@
       </b-row>
 
       <b-row
-        v-if="isRecordConfigured"
+        v-if="isRecordFieldUsedConfigured"
         class="mt-3"
       >
         <b-col
@@ -342,8 +342,12 @@ export default {
       },
     },
 
-    isRecordConfigured () {
-      return this.options.fields.some(f => f.kind === 'Record')
+    isRecordFieldUsedConfigured () {
+      if (this.options.fields.length === 0) {
+        return this.module.fields.some(f => f.kind === 'Record')
+      } else {
+        return this.options.fields.some(f => f.kind === 'Record')
+      }
     },
   },
 
