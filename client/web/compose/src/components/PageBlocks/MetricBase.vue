@@ -222,9 +222,10 @@ export default {
       } else {
         // Open in modal
         const metricID = `${this.block.blockID}-${name.replace(/\s+/g, '-').toLowerCase()}-${moduleID}-${metricIndex}`
+        const { title } = this.block
 
         const block = new compose.PageBlockRecordList({
-          title: name || this.$t('metric.metricDrillDown'),
+          title: name || title || this.$t('metric.metricDrillDown'),
           blockID: `drillDown-${metricID}`,
           options: {
             moduleID,
