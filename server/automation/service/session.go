@@ -480,9 +480,9 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 				// calculate how long it took to get to this step
 				frame.ElapsedTime = uint(frame.CreatedAt.Sub(ses.RuntimeStacktrace[0].CreatedAt) / time.Millisecond)
 			}
-		}
 
-		ses.AppendRuntimeStacktrace(frame)
+			ses.AppendRuntimeStacktrace(frame)
+		}
 
 		switch status {
 		case wfexec.SessionPrompted:
