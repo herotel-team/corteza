@@ -461,9 +461,6 @@
                 <div
                   v-else-if="field.moduleField.canReadRecordValue && !field.edit"
                   class="d-flex mb-0"
-                  :class="{
-                    'field-adjust-offset': inlineEditing,
-                  }"
                 >
                   <field-viewer
                     :field="field.moduleField"
@@ -2299,8 +2296,6 @@ export default {
 }
 
 th {
-  min-width: 13rem;
-
   &.required::after {
     content: "*";
     display: inline-block;
