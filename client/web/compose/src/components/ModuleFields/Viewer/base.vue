@@ -48,6 +48,11 @@ export default {
       type: Object,
       default: () => ({}),
     },
+
+    includeStyles: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   computed: {
@@ -73,8 +78,10 @@ export default {
 
       if (this.field.isMulti) {
         classes.push('multiline')
-      } else if (!textStyles.wrappedFields || !textStyles.wrappedFields.includes(fieldID)) {
-        classes.push('text-nowrap')
+      } else if (this.includeStyles) {
+        if (!textStyles.wrappedFields || !textStyles.wrappedFields.includes(fieldID)) {
+          classes.push('text-nowrap')
+        }
       }
 
       return classes
