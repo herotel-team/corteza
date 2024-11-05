@@ -469,6 +469,7 @@
                     :module="module"
                     :namespace="namespace"
                     :extra-options="options"
+                    include-styles
                   />
                   <div class="d-flex flex-nowrap align-items-start inline-actions">
                     <b-button
