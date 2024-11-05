@@ -248,6 +248,15 @@ func Typify(in interface{}) (tv TypedValue, err error) {
 	case io.Reader, io.ReadCloser, io.ReadSeeker, io.ReadSeekCloser, io.ReadWriteSeeker:
 		return &Reader{value: c.(io.Reader)}, nil
 	default:
+		// In case this is a slice/array
+		switch reflect.TypeOf(c).Kind() {
+		case reflect.Slice:
+			return NewArray(c)
+		case reflect.Array:
+			return NewArray(c)
+		}
+
+		// If all else fails
 		return &Any{value: c}, nil
 	}
 }
