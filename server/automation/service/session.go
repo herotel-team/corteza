@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/sentry"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/cortezaproject/corteza/server/store"
+	"github.com/modern-go/reflect2"
 	"go.uber.org/zap"
 )
 
@@ -448,9 +450,19 @@ func (svc *session) logPending() {
 
 // stateChangeHandler keeps track of session status changes and frequently stores session into db
 func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHandler {
-	return func(status wfexec.SessionStatus, state *wfexec.State, s *wfexec.Session) {
+	return func(status wfexec.SessionStatus, state *wfexec.State, s *wfexec.Session) (err error) {
 		svc.mux.Lock()
 		defer svc.mux.Unlock()
+
+		// Handle potential state change handler panics and gracefully error out
+		defer func() {
+			reason := recover()
+			if reflect2.IsNil(reason) {
+				return
+			}
+
+			err = fmt.Errorf("automation/service/session.go#stateChangeHandler panic: %v", reason)
+		}()
 
 		ses := svc.pool[s.ID()]
 		if ses == nil {
@@ -549,6 +561,8 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 
 			log.Error("failed to update session", zap.Error(err))
 		}
+
+		return
 	}
 }
 

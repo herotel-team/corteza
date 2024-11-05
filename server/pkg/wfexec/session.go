@@ -65,7 +65,7 @@ type (
 		callStack []uint64
 	}
 
-	StateChangeHandler func(SessionStatus, *State, *Session)
+	StateChangeHandler func(SessionStatus, *State, *Session) error
 
 	SessionOpt func(*Session)
 
@@ -180,8 +180,10 @@ func NewSession(ctx context.Context, g *Graph, oo ...SessionOpt) *Session {
 
 		log: zap.NewNop(),
 
-		eventHandler: func(SessionStatus, *State, *Session) {
+		eventHandler: func(SessionStatus, *State, *Session) error {
 			// noop
+
+			return nil
 		},
 	}
 
@@ -484,7 +486,18 @@ func (s *Session) worker(ctx context.Context) {
 				s.mux.Unlock()
 
 				// Call event handler with completed status
-				s.eventHandler(SessionCompleted, st, s)
+				err := s.eventHandler(SessionCompleted, st, s)
+				if err != nil {
+					err = fmt.Errorf(
+						"workflow %d state change handler failed: %w",
+						s.workflowID,
+						err,
+					)
+					s.log.Error(err.Error())
+
+					s.err = err
+					return
+				}
 				return
 			}
 
@@ -544,7 +557,18 @@ func (s *Session) worker(ctx context.Context) {
 					zap.Error(st.err),
 				)
 
-				s.eventHandler(status, st, s)
+				err = s.eventHandler(status, st, s)
+				if err != nil {
+					err = fmt.Errorf(
+						"workflow %d state change handler failed: %w",
+						s.workflowID,
+						err,
+					)
+					s.log.Error(err.Error())
+
+					s.err = err
+					return
+				}
 
 				for _, n := range nxt {
 					if n.step != nil {
