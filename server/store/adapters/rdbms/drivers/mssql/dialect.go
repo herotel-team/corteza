@@ -256,25 +256,40 @@ func (mssqlDialect) ColumnFits(target, assert *ddl.Column) bool {
 	// [the type of the target column][what types fit the target col. type]
 	matches := map[string]map[string]bool{
 		"bigint": {
-			"varchar": true,
+			"varchar":  true,
+			"nvarchar": true,
 		},
 		"datetime": {
-			"varchar": true,
+			"varchar":  true,
+			"nvarchar": true,
 		},
 		"time": {
-			"varchar": true,
+			"varchar":  true,
+			"nvarchar": true,
 		},
 		"date": {
-			"varchar": true,
+			"varchar":  true,
+			"nvarchar": true,
 		},
 		"decimal": {
+			"varchar":  true,
+			"nvarchar": true,
+		},
+		"text": {
+			"nvarchar": true,
+			"varchar":  true,
+		},
+		"varchar": {
+			"nvarchar": true,
+		},
+		"nvarchar": {
 			"varchar": true,
 		},
-		"varchar":   {},
 		"varbinary": {},
 		"bit":       {},
 		"char": {
-			"varchar": true,
+			"varchar":  true,
+			"nvarchar": true,
 		},
 	}
 
