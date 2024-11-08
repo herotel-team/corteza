@@ -23,7 +23,6 @@
         >
           <expression-editor
             v-model="item.config.arguments[0].expr"
-            lang="javascript"
             font-size="18px"
             show-line-numbers
             @input="valueChanged"

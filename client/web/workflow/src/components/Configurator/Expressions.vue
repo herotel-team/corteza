@@ -65,7 +65,6 @@
       <expression-editor
         v-model="currentExpressionValue"
         height="500"
-        lang="javascript"
         font-size="18px"
         show-line-numbers
         :border="false"
