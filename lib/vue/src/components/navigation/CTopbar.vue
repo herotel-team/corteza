@@ -2,9 +2,7 @@
   <div class="header-navigation d-flex flex-wrap align-items-center py-2 px-3 gap-2">
     <div
       class="sidebar-spacer"
-      :class="{
-        'expanded': sidebarPinned,
-      }"
+      :class="{ 'expanded': sidebarPinned }"
     />
 
     <h2 class="title mb-0">
@@ -115,7 +113,7 @@
             v-if="avatarExists"
             class="avatar d-flex h-100"
             :style="{
-              'background-image': avatarExists  ? `url(${profileAvatarUrl})` : 'none',
+              'background-image': avatarExists ? `url(${profileAvatarUrl})` : 'none',
             }"
           />
 
@@ -172,7 +170,7 @@
         </b-dropdown-item>
 
         <b-dropdown
-        v-if="!settings.hideThemeSelector"
+          v-if="!settings.hideThemeSelector"
           id="theme-dropleft"
           variant="link"
           text="Theme"
@@ -199,8 +197,8 @@
         <b-dropdown-item
           data-test-id="dropdown-profile-logout"
           href=""
-          @click="$auth.logout()"
           class="mt-2"
+          @click="$auth.logout()"
         >
           {{ labels.userSettingsLogout }}
         </b-dropdown-item>
@@ -211,17 +209,11 @@
 
 <script>
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faMoon, faSun} from '@fortawesome/free-solid-svg-icons'
+import { faMoon, faSun } from '@fortawesome/free-solid-svg-icons'
 
 library.add(faMoon, faSun)
 
 export default {
-  data() {
-    return {
-      currentTheme: 'light',
-      isThemeDropdownVisible: false,
-    }
-  },
 
   props: {
     sidebarPinned: {
@@ -238,7 +230,7 @@ export default {
 
     appSelectorURL: {
       type: String,
-      default: '../'
+      default: '../',
     },
 
     settings: {
@@ -250,6 +242,12 @@ export default {
       type: Object,
       required: true,
     },
+  },
+  data () {
+    return {
+      currentTheme: 'light',
+      isThemeDropdownVisible: false,
+    }
   },
 
   computed: {
@@ -296,7 +294,7 @@ export default {
     },
 
     avatarExists () {
-      return this.$auth.user.meta.avatarID !== "0" && this.$auth.user.meta.avatarID
+      return this.$auth.user.meta.avatarID !== '0' && this.$auth.user.meta.avatarID
     },
 
     themes () {
@@ -360,8 +358,13 @@ $nav-user-icon-size: calc(var(--topbar-height) - 16px);
   min-height: var(--topbar-height);
   background-color: var(--topbar-bg);
 
-  .sidebar-spacer.expanded {
-    min-width: calc(var(--sidebar-width) - 50px);
+  .sidebar-spacer {
+    display: none;
+    min-width: calc(var(--sidebar-width) - 60px);
+
+    &.expanded {
+      display: block;
+    }
   }
 }
 
@@ -383,13 +386,14 @@ $nav-user-icon-size: calc(var(--topbar-height) - 16px);
   display: flex;
   align-items: center;
   min-height: $nav-user-icon-size;
-  padding-left: 42px;
+  padding-left: 47px;
 
   .vue-portal-target {
     display: -webkit-box; /* For Safari and old versions of Chrome */
     display: -ms-flexbox; /* For old versions of IE */
     -webkit-box-orient: vertical; /* For Safari and old versions of Chrome */
     -webkit-line-clamp: 3; /* Maximum number of lines to display */
+    line-clamp: 3; /* Maximum number of lines to display */
     overflow: hidden;
     text-overflow: ellipsis;
   }

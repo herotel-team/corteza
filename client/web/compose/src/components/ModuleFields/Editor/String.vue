@@ -68,7 +68,6 @@
         :labels="{
           urlPlaceholder: $t('content.urlPlaceholder'),
           ok: $t('content.ok'),
-          openLinkInNewTab: $t('content.openLinkInNewTab'),
         }"
       />
 

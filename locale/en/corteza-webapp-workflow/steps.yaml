@@ -2,6 +2,13 @@ break:
   label: Break
   short: Break
   tooltip: Stop iterator execution and continue with workflow
+content:
+  label: Content
+  short: Content
+  tooltip: Content block used for text annotations
+  configurator:
+    ok: Ok
+    urlPlaceholder: https://example.tld
 continue:
   label: Continue
   short: Continue

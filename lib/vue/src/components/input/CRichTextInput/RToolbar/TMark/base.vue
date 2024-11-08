@@ -21,7 +21,7 @@ export default {
     },
     currentValue: {
       type: String,
-      required: false,
+      default: '',
     },
   },
   methods: {

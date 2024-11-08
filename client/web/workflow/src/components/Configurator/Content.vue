@@ -2,9 +2,8 @@
   <c-rich-text-input
     v-model="label"
     :labels="{
-      urlPlaceholder: $t('content.urlPlaceholder'),
-      ok: $t('content.ok'),
-      openLinkInNewTab: $t('content.openLinkInNewTab'),
+      urlPlaceholder: $t('steps:content.configurator.urlPlaceholder'),
+      ok: $t('steps:content.configurator.ok'),
     }"
     class="m-3"
     @input="$emit('update-value', $event)"
