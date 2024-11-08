@@ -140,7 +140,6 @@ chart:
 content:
   ok: Ok
   label: Content
-  openLinkInNewTab: Open link in a new tab
   urlPlaceholder: https://example.tld
 file:
   label: File

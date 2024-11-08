@@ -1,11 +1,11 @@
 <template>
   <div id="link-popover-container">
     <b-button
+      id="link-popover"
       variant="link"
       class="text-dark font-weight-bold text-decoration-none"
-      id="link-popover"
-      @click="showPopover">
-
+      @click="showPopover"
+    >
       <span :class="activeClasses(format.attrs)">
         <font-awesome-icon icon="link" />
       </span>
@@ -13,39 +13,30 @@
 
     <b-popover
       v-if="currentValue"
+      ref="popover"
       triggers="focus"
       target="link-popover"
       placement="auto"
       :show.sync="visible"
       container="link-popover-container"
-      ref="popover">
-
-      <b-input-group>
+    >
+      <b-input-group style="min-width: 250px;">
         <b-form-input
-          type="url"
           v-model="attrs.href"
+          type="url"
           autofocus
-          :state="urlValid ? null : false"
           :placeholder="labels.urlPlaceholder"
-          style="min-width:100px"
           @keydown.enter.prevent.stop="link"
-          @keydown.esc.prevent.stop="close" 
+          @keydown.esc.prevent.stop="close"
         />
         <b-input-group-append>
           <b-button
+            variant="outline-success"
             @click="link"
-            :disabled="!urlValid"
-            variant="outline-success">
+          >
             {{ labels.ok }}
           </b-button>
         </b-input-group-append>
-        <b-checkbox
-          v-model="attrs.target"
-          value="_blank"
-          unchecked-value="_self"
-          class="py-1">
-            {{ labels.openLinkInNewTab }}
-        </b-checkbox>
       </b-input-group>
     </b-popover>
   </div>
@@ -59,14 +50,14 @@ import base from './base.vue'
  * input the URL that should be applied.
  */
 export default {
-  name: 't-mark-link',
+  name: 'TMarkLink',
   extends: base,
 
   props: {
     labels: {
       type: Object,
-      default: () => ({})
-    }
+      default: () => ({}),
+    },
   },
 
   data () {

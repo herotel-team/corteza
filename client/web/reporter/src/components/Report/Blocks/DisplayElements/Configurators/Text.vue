@@ -6,7 +6,6 @@
       :labels="{
         urlPlaceholder: $t('label.urlPlaceholder'),
         ok: $t('label.ok'),
-        openLinkInNewTab: $t('label.openLinkInNewTab'),
       }"
     />
   </b-form-group>

@@ -81,7 +81,6 @@
             />
           </div>
 
-
           <hr
             v-if="!isExpanded"
             class="my-2"
@@ -173,12 +172,12 @@ export default {
 
     icon: {
       type: String,
-      default: () => ''
+      default: () => '',
     },
 
     logo: {
       type: String,
-      default: () => ''
+      default: () => '',
     },
 
     right: {
@@ -189,7 +188,7 @@ export default {
 
   data () {
     return {
-      sidebarSettings : {},
+      sidebarSettings: {},
       isMobile: false,
     }
   },
@@ -202,6 +201,10 @@ export default {
 
       set (expanded) {
         this.$emit('update:expanded', expanded)
+
+        if (!expanded) {
+          this.isPinned = false
+        }
       },
     },
 
@@ -214,18 +217,6 @@ export default {
         this.$emit('update:pinned', pinned)
       },
     },
-  },
-
-  created () {
-    this.checkIfMobile()
-
-    this.$root.$on('close-sidebar', this.closeSidebar)
-    window.addEventListener('resize', this.checkIfMobile)
-  },
-
-  beforeDestroy () {
-    this.$root.$off('close-sidebar', this.closeSidebar)
-    window.removeEventListener('resize', this.checkIfMobile)
   },
 
   watch: {
@@ -241,6 +232,18 @@ export default {
         this.checkSidebar()
       },
     },
+  },
+
+  created () {
+    this.checkIfMobile()
+
+    this.$root.$on('close-sidebar', this.closeSidebar)
+    window.addEventListener('resize', this.checkIfMobile)
+  },
+
+  beforeDestroy () {
+    this.$root.$off('close-sidebar', this.closeSidebar)
+    window.removeEventListener('resize', this.checkIfMobile)
   },
 
   methods: {
@@ -272,15 +275,18 @@ export default {
     },
 
     defaultSidebarAppearance () {
-      const localstorage_settings = JSON.parse(window.localStorage.getItem('sidebarSettings'))
-      if (localstorage_settings) {
-        this.sidebarSettings = localstorage_settings
+      const localStorageSettings = JSON.parse(window.localStorage.getItem('sidebarSettings'))
+
+      if (localStorageSettings) {
+        this.sidebarSettings = localStorageSettings
       }
-      const app_sidebar = (localstorage_settings || {})[this.$root.$options.name]
+
+      const appSidebar = (localStorageSettings || {})[this.$root.$options.name]
+
       if (!this.isMobile) {
-        if (app_sidebar) {
-          this.isExpanded = app_sidebar.pinned
-          this.isPinned = app_sidebar.pinned
+        if (appSidebar) {
+          this.isExpanded = appSidebar.pinned
+          this.isPinned = appSidebar.pinned
         } else {
           this.openSidebar()
         }
