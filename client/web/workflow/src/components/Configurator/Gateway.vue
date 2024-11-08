@@ -35,7 +35,6 @@
           >
             <expression-editor
               v-model="edge.expr"
-              lang="javascript"
               height="100"
               show-line-numbers
               :show-popout="false"

@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="options"
-    class="rt-content px-3 py-2"
+    class="rt-content p-3"
     v-html="options.value"
   />
 </template>
