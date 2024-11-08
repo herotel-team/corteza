@@ -99,7 +99,6 @@
               >
                 <expression-editor
                   v-model="item[valueField]"
-                  lang="javascript"
                   show-line-numbers
                   @open="$emit('open-editor', index)"
                   @input="$root.$emit('change-detected')"

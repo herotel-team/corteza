@@ -22,7 +22,6 @@
       >
         <expression-editor
           v-model="item.config.arguments[0].expr"
-          lang="javascript"
           font-size="18px"
           show-line-numbers
           @open="openInEditor"
@@ -46,7 +45,6 @@
     >
       <expression-editor
         v-model="expressionEditor.currentExpression"
-        lang="javascript"
         height="500"
         font-size="18px"
         show-line-numbers

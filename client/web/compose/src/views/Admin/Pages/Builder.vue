@@ -192,7 +192,7 @@
       :cancel-title="$t('block.general.label.cancel')"
       size="xl"
       :visible="showCreator"
-      body-class="p-0 border-top-0"
+      body-class="p-0 border-top-0 position-static"
       header-class="p-3 pb-0 border-bottom-0"
       @ok="updateBlocks()"
       @hide="editor = undefined"
@@ -226,7 +226,7 @@
       scrollable
       size="xl"
       :visible="showEditor"
-      body-class="p-0 border-top-0"
+      body-class="p-0 border-top-0 position-static"
       footer-class="d-flex justify-content-between"
       header-class="p-3 pb-0 border-bottom-0"
       @hide="editor = undefined"

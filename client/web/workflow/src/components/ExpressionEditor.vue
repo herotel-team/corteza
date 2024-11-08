@@ -9,7 +9,7 @@
       :show-line-numbers="showLineNumbers"
       :font-size="fontSize"
       :show-popout="showPopout"
-      auto-complete
+      :auto-complete="autoComplete"
       :border="border"
       :auto-complete-suggestions="expressionAutoCompleteValues"
       v-on="$listeners"
@@ -60,6 +60,11 @@ export default {
     },
 
     showPopout: {
+      type: Boolean,
+      default: true,
+    },
+
+    autoComplete: {
       type: Boolean,
       default: true,
     },

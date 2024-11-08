@@ -50,6 +50,7 @@ import {
   faTools,
   faClone,
   faDownload,
+  faTable,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -116,4 +117,5 @@ library.add(
   faTools,
   faClone,
   faDownload,
+  faTable,
 )

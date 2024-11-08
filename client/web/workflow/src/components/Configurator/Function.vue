@@ -160,6 +160,7 @@
                   <expression-editor
                     v-else
                     v-model="a.value"
+                    :auto-complete="false"
                     @open="openInEditor(index)"
                     @input="$root.$emit('change-detected')"
                   />
@@ -168,7 +169,6 @@
                 <expression-editor
                   v-else-if="a.valueType === 'expr'"
                   v-model="a.expr"
-                  lang="javascript"
                   show-line-numbers
                   @open="openInEditor(index)"
                   @input="$root.$emit('change-detected')"
