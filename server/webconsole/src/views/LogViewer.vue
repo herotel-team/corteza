@@ -4,10 +4,10 @@
     <table>
       <thead>
         <tr>
-          <td>one</td>
-          <td>level</td>
-          <td>logger</td>
-          <td>message</td>
+          <th scope="col">one</th>
+          <th scope="col">level</th>
+          <th scope="col">logger</th>
+          <th scope="col">message</th>
         </tr>
       </thead>
       <tfoot v-if="lastRefresh">
