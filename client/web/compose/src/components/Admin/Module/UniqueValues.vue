@@ -71,19 +71,19 @@
         >
           <thead>
             <tr class="text-primary">
-              <th>
+              <th scope="col">
                 {{ $t("field") }}
               </th>
-              <th>
+              <th scope="col">
                 {{ $t("type") }}
               </th>
-              <th style="width: 250px;">
+              <th scope="col" style="width: 250px;">
                 {{ $t("valueModifiers") }}
               </th>
-              <th style="width: 250px;">
+              <th scope="col" style="width: 250px;">
                 {{ $t("multiValues") }}
               </th>
-              <th style="width: 150px;" />
+              <th scope="col" style="width: 150px;" />
             </tr>
           </thead>
 

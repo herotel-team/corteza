@@ -229,9 +229,10 @@
                     >
                       <thead>
                         <tr>
-                          <th />
+                          <th scope="col" />
                           <th
                             class="text-primary"
+                            scope="col"
                           >
                             <div
                               class="d-flex align-items-center"
@@ -244,6 +245,7 @@
                           </th>
                           <th
                             class="text-primary"
+                            scope="col"
                           >
                             <div
                               class="d-flex align-items-center"
@@ -255,22 +257,22 @@
                             </div>
                           </th>
 
-                          <th class="text-primary">
+                          <th class="text-primary" scope="col">
                             {{ $t('general:label.type') }}
                           </th>
 
-                          <th />
-                          <th />
+                          <th scope="col" />
+                          <th scope="col" />
 
-                          <th class="text-primary text-center pr-3">
+                          <th class="text-primary text-center pr-3" scope="col">
                             {{ $t('general:label.required') }}
                           </th>
 
-                          <th class="text-primary text-center pl-2">
+                          <th class="text-primary text-center pl-2" scope="col">
                             {{ $t('general:label.multi') }}
                           </th>
 
-                          <th />
+                          <th scope="col" />
                         </tr>
                       </thead>
 
@@ -313,10 +315,11 @@
                     >
                       <thead>
                         <tr>
-                          <th />
+                          <th scope="col" />
 
                           <th
                             class="text-primary"
+                            scope="col"
                             style="min-width: 250px;"
                           >
                             {{ $t('general:label.name') }}
@@ -324,6 +327,7 @@
 
                           <th
                             class="text-primary"
+                            scope="col"
                             style="min-width: 250px;"
                           >
                             {{ $t('general.label.title') }}
@@ -332,6 +336,7 @@
                           <th
                             colspan="5"
                             class="text-primary"
+                            scope="col"
                             style="min-width: 250px;"
                           >
                             {{ $t('general:label.type') }}
