@@ -43,17 +43,18 @@
       >
         <thead>
           <tr class="text-primary">
-            <th style="min-width: 200px;">
+            <th scope="col" style="min-width: 200px;">
               {{ $t("navigation.text") }}
             </th>
-            <th style="min-width: 200px;">
+            <th scope="col" style="min-width: 200px;">
               {{ $t("navigation.url") }}
             </th>
-            <th style="min-width: 200px;">
+            <th scope="col" style="min-width: 200px;">
               {{ $t('navigation.openIn') }}
             </th>
             <th
               class="text-center"
+              scope="col"
               style="width: 50px; min-width: 50px;"
             >
               {{ $t("navigation.delimiter") }}

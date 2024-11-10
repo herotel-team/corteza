@@ -97,28 +97,29 @@
               >
                 <thead class="text-primary">
                   <tr>
-                    <th style="width: auto;" />
+                    <th scope="col" style="width: auto;" />
 
-                    <th style="min-width: 200px;">
+                    <th scope="col" style="min-width: 200px;">
                       {{ $t("navigation.type") }}
                     </th>
 
-                    <th style="min-width: 200px;">
+                    <th scope="col" style="min-width: 200px;">
                       {{ $t("navigation.color") }}
                     </th>
 
-                    <th style="min-width: 200px;">
+                    <th scope="col" style="min-width: 200px;">
                       {{ $t("navigation.background") }}
                     </th>
 
                     <th
                       class="text-center"
+                      scope="col"
                       style="width: 50px; min-width: 50px;"
                     >
                       {{ $t("navigation.enabled") }}
                     </th>
 
-                    <th style="width: auto; min-width: 100px;" />
+                    <th scope="col" style="width: auto; min-width: 100px;" />
                   </tr>
                 </thead>
 

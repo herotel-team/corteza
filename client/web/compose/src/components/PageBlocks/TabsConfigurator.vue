@@ -122,9 +122,9 @@
       >
         <b-thead>
           <tr>
-            <th />
+            <th scope="col" />
 
-            <th class="d-flex align-items-center text-primary">
+            <th class="d-flex align-items-center text-primary" scope="col">
               {{ $t('tabs.table.columns.title.label') }}
               <c-hint
                 :tooltip="$t('interpolationFootnote', ['${record.values.fieldName}', '${recordID}', '${ownerID}', '${userID}'])"
@@ -134,11 +134,12 @@
 
             <th
               class="text-primary"
+              scope="col"
             >
               {{ $t('tabs.table.columns.block.label') }}
             </th>
 
-            <th />
+            <th scope="col" />
           </tr>
         </b-thead>
 
