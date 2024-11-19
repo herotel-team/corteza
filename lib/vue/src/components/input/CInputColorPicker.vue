@@ -48,7 +48,10 @@
           />
         </svg>
       </b-button>
-      <span v-if="showText" class="ml-2">
+      <span
+        v-if="showText"
+        class="ml-2"
+      >
         {{ value }}
       </span>
     </div>
@@ -147,16 +150,17 @@ export default {
 
     translations: {
       type: Object,
+      default: () => ({}),
     },
 
     width: {
       type: String,
-      default: "32px",
+      default: '32px',
     },
 
     height: {
       type: String,
-      default: "32px",
+      default: '32px',
     },
 
     showText: {
@@ -166,7 +170,7 @@ export default {
 
     themeSettings: {
       type: Array,
-      default: [],
+      default: () => [],
     },
 
     themeVariables: {
@@ -205,7 +209,7 @@ export default {
           label: 'Extra light',
         },
       ],
-    }
+    },
   },
 
   data () {
@@ -218,13 +222,13 @@ export default {
   computed: {
     themes () {
       return this.themeSettings
-      .filter((theme) => theme.id !== 'general') // remove general theme
-      .map((theme) => {
-        return {
-          id: theme.id,
-          values: JSON.parse(theme.values),
-        }
-      })
+        .filter((theme) => theme.id !== 'general') // remove general theme
+        .map((theme) => {
+          return {
+            id: theme.id,
+            values: JSON.parse(theme.values),
+          }
+        })
     },
   },
 
@@ -257,11 +261,6 @@ export default {
       } else {
         this.openMenu()
       }
-    },
-
-    saveColor () {
-      this.$emit('input', this.currentColor || this.value)
-      this.closeMenu()
     },
 
     openMenu () {
