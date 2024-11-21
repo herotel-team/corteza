@@ -71,29 +71,29 @@ func (index *ruleIndex) add(rules ...*Rule) {
 	}
 }
 
-func (index *ruleIndex) remove(rules ...*Rule) {
-	if len(rules) == 0 {
+func (index *ruleIndex) remove(role uint64, resource string, ops ...string) {
+	if _, ok := index.children[role]; !ok {
 		return
 	}
 
-	for _, r := range rules {
-		if _, ok := index.children[r.RoleID]; !ok {
-			continue
-		}
+	auxOps := ops
 
-		if !index.has(r) {
-			continue
+	if len(auxOps) == 0 {
+		for op := range index.children[role].children {
+			auxOps = append(auxOps, op)
 		}
+	}
 
-		bits := append([]string{r.Operation}, strings.Split(r.Resource, "/")...)
-		index.removeRec(index.children[r.RoleID], bits)
+	for _, op := range auxOps {
+		bits := append([]string{op}, strings.Split(resource, "/")...)
+		index.removeRec(index.children[role], bits)
 
 		// Finishing touch cleanup
-		if len(index.children[r.RoleID].children[r.Operation].children) == 0 {
-			delete(index.children[r.RoleID].children, r.Operation)
+		if len(index.children[role].children[op].children) == 0 {
+			delete(index.children[role].children, op)
 		}
-		if len(index.children[r.RoleID].children) == 0 {
-			delete(index.children, r.RoleID)
+		if len(index.children[role].children) == 0 {
+			delete(index.children, role)
 		}
 	}
 }
