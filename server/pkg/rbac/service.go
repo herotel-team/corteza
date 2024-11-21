@@ -2,31 +2,92 @@ package rbac
 
 import (
 	"context"
+	"fmt"
+	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/sentry"
+	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 )
 
 type (
-	service struct {
-		l      *sync.RWMutex
-		logger *zap.Logger
+	Service struct {
+		mux        sync.RWMutex
+		cfg        Config
+		logger     *zap.Logger
+		StatLogger statLogger
 
-		//  service will flush values on TRUE or just reload on FALSE
-		f chan bool
+		usageCounter *usageCounter[string]
+		index        *wrapperIndex
+		roles        []*Role
 
-		rules   RuleSet
-		indexed *ruleIndex
-
-		roles []*Role
-
-		store rbacRulesStore
+		RuleStorage rbacRulesStore
+		RoleStorage rbacRoleStore
 	}
 
-	// RuleFilter is a dummy struct to satisfy store codegen
+	Config struct {
+		// MaxIndexSize limits the max size of the in memory index
+		//
+		// When set to -1, max size is used
+		// When set to 0, the in memory index is not used
+		MaxIndexSize int
+
+		// Synchronous lets us make all the procedures synchronous for ease of testing
+		// This should always be false in production
+		Synchronous bool
+
+		// ReindexStrategy specifies how the index needs to be recalcualted
+		// The default option is ReindexStrategyMemory
+		//
+		// If both speed and memory are needed, consider reducing MaxIndexSize
+		// while using ReindexStrategySpeed
+		ReindexStrategy ReindexStrategy
+
+		// DecayFactor states how fast an indexed value looses it's score
+		DecayFactor float64
+		// DecayInterval states how often we should decay indexed items
+		DecayInterval time.Duration
+		// CleanupInterval states how often stale or poor performers should be thrown out
+		CleanupInterval time.Duration
+		// IndexFlushInterval states how often the index state should be flushed to the database
+		IndexFlushInterval time.Duration
+
+		// StatLogger provides the methods to log some performance metrices
+		StatLogger statLogger
+		// RuleStorage provides the methods to interact with rules
+		RuleStorage rbacRulesStore
+		// RoleStorage provides the methods to interact with roles
+		RoleStorage rbacRoleStore
+
+		// PullInitialRoles provides the initial set of roles we can use
+		PullInitialRoles func(ctx context.Context) ([]*types.Role, error)
+		// PullInitialState provides the initial index state
+		//
+		// The string slice provides index keys which should then be further processed
+		// to determine the actual index state.
+		//
+		// When working with resource rule combos, the key will be `{roleID}:{resourceIdentifier}`
+		PullInitialState func(ctx context.Context, n int) ([]string, error)
+		// FlushIndexState takes the current index state and flushes it to the database
+		// @todo for now it's a noop; we should preserve
+		FlushIndexState func(context.Context, []string) error
+	}
+
+	// evaluationState is a little helper to keep all the things we need in place
+	evaluationState struct {
+		unindexedRoles partRoles
+		indexedRoles   partRoles
+
+		unindexedRules [5]map[uint64][]*Rule
+
+		res string
+		op  string
+	}
+
 	RuleFilter struct {
 		Resource  []string
 		Operation string
@@ -40,79 +101,134 @@ type (
 		Authenticated []uint64
 		Anonymous     []uint64
 	}
-)
 
-var (
-	// Global RBAC service
-	gRBAC *service
+	ReindexStrategy string
 )
 
 const (
-	watchInterval = time.Hour
+	// ReindexStrategyDefault defaults to ReindexStrategyMemory
+	ReindexStrategyDefault ReindexStrategy = ""
+	// ReindexStrategyMemory prioritizes memory consumption over speed
+	//
+	// This mode firstly clears out stale values and then pulls in existing.
+	// The memory consumption should remain about the same through this process.
+	ReindexStrategyMemory ReindexStrategy = "memory"
+	// ReindexStrategySpeed prioritizes speed over memory
+	//
+	// This mode firstly builds the new index with the same (or larger) size as
+	// the current one (the new index falls under the upper limit).
+	// The memory consumption, worst case, will be 2x the upper limit.
+	ReindexStrategySpeed ReindexStrategy = "speed"
 
 	RuleResourceType = "corteza::generic:rbac-rule"
 )
 
+var (
+	// Global RBAC service
+	gWrapper *Service
+)
+
 // Global returns global RBAC service
-func Global() *service {
-	return gRBAC
+func Global() *Service {
+	return gWrapper
 }
 
 // SetGlobal re-sets global service
-func SetGlobal(svc *service) {
-	gRBAC = svc
+func SetGlobal(svc *Service) {
+	gWrapper = svc
 }
 
-// NewService initializes service{} struct
-//
-// service{} struct preloads, checks, grants and flushes privileges to and from store
-// It acts as a caching layer
-func NewService(logger *zap.Logger, s rbacRulesStore) (svc *service) {
-	svc = &service{
-		l: &sync.RWMutex{},
-		f: make(chan bool),
+// RbacService initializes the wrapper service with all the required surrounding bits
+func RbacService(ctx context.Context, l *zap.Logger, store rbacRulesStore, cc Config) (svc *Service, err error) {
+	cc = defaultWrapperConfig(cc)
 
-		store: s,
+	usageCounter := &usageCounter[string]{
+		incChan: make(chan string, 256),
+
+		decayFactor:     cc.DecayFactor,
+		decayInterval:   cc.DecayInterval,
+		cleanupInterval: cc.CleanupInterval,
 	}
 
-	if logger != nil {
-		svc.logger = logger.Named("rbac")
+	svc = &Service{
+		cfg:        cc,
+		StatLogger: cc.StatLogger,
+		logger:     l,
+
+		usageCounter: usageCounter,
+
+		RuleStorage: cc.RuleStorage,
+		RoleStorage: cc.RoleStorage,
 	}
+
+	svc.roles, err = svc.loadRoles(ctx)
+	if err != nil {
+		return
+	}
+
+	svc.index, err = svc.loadIndex(ctx, store, svc.roles)
+	if err != nil {
+		return
+	}
+
+	usageCounter.watch(ctx)
+	svc.watch(ctx)
 
 	return
 }
 
-// Can function performs permission check for roles in context
-//
-// First extracts roles from context, then
-// use Check() to test against permission rules and
-// iterate over all fallback functions
-//
-// System user is always allowed to do everything
-func (svc *service) Can(ses Session, op string, res Resource) bool {
-	return svc.Check(ses, op, res) == Allow
+func defaultWrapperConfig(base Config) (out Config) {
+	out = base
+
+	// -1 disables partitioning so everything is pulled in memory
+	if base.MaxIndexSize == 0 {
+		out.MaxIndexSize = -1
+	}
+
+	// Noop to avoid branching down the line
+	if base.FlushIndexState == nil {
+		out.FlushIndexState = func(ctx context.Context, s []string) error { return nil }
+	}
+
+	// Noop to avoid branching down the line
+	if base.StatLogger == nil {
+		out.StatLogger = &noopStatLogger{}
+	}
+
+	if base.ReindexStrategy == ReindexStrategyDefault {
+		out.ReindexStrategy = ReindexStrategyMemory
+	}
+
+	return out
 }
 
-// Check verifies if role has access to perform an operation on a resource
-//
-// See RuleSet's Check() func for details
-func (svc *service) Check(ses Session, op string, res Resource) (a Access) {
-	var (
-		fRoles = getContextRoles(ses, res, svc.roles...)
-	)
+// Can returns true if the given resource can be accessed
+func (svc *Service) Can(ses Session, op string, res Resource) (ok bool, err error) {
+	ac, err := svc.Check(ses, op, res)
+	if err != nil {
+		return
+	}
 
+	return ac == Allow, nil
+}
+
+// Check returns the RBAC evaluation of the resource access
+func (svc *Service) Check(ses Session, op string, res Resource) (a Access, err error) {
 	if hasWildcards(res.RbacResource()) {
 		// prevent use of wildcard resources for checking permissions
-		return Inherit
+		return Inherit, nil
 	}
 
-	a = check(svc.indexed, fRoles, op, res.RbacResource(), nil)
+	roles := evalRoles(ses, res, svc.roles...)
 
-	return
+	// @todo something more robust?
+	svc.incCounter(roles, res)
+
+	return svc.check(ses.Context(), roles, op, res.RbacResource(), nil)
 }
 
 // Trace checks RBAC rules and returns all decision trace log
-func (svc *service) Trace(ses Session, op string, res Resource) *Trace {
+func (svc *Service) Trace(ses Session, op string, res Resource) (*Trace, error) {
 	var (
 		t = new(Trace)
 	)
@@ -149,184 +265,433 @@ func (svc *service) Trace(ses Session, op string, res Resource) *Trace {
 			// there is no need to procede with RBAC check
 			baseTraceInfo(t, res.RbacResource(), op, ctxRolesDebug)
 			resolve(t, Inherit, unknownContext)
-			return t
+			return t, nil
 		}
 	}
 
 	var (
-		fRoles = getContextRoles(ses, res, svc.roles...)
+		fRoles = evalRoles(ses, res, svc.roles...)
 	)
 
-	_ = check(svc.indexed, fRoles, op, res.RbacResource(), t)
+	_, err := svc.check(ses.Context(), fRoles, op, res.RbacResource(), nil)
+	if err != nil {
+		return nil, err
+	}
 
-	return t
+	return t, nil
 }
 
 // Grant appends and/or overwrites internal rules slice
 //
 // All rules with Inherit are removed
-func (svc *service) Grant(ctx context.Context, rules ...*Rule) (err error) {
-	svc.l.Lock()
-	defer svc.l.Unlock()
-
+func (svc *Service) Grant(ctx context.Context, rules ...*Rule) (err error) {
 	for _, r := range rules {
+		if svc.logger == nil {
+			continue
+		}
+
 		svc.logger.Debug(r.Access.String() + " " + r.Operation + " on " + r.Resource + " to " + strconv.FormatUint(r.RoleID, 10))
 	}
 
-	svc.grant(rules...)
-	return svc.flush(ctx)
-}
-
-func (svc *service) grant(rules ...*Rule) {
-	svc.rules = merge(svc.rules, rules...)
-	svc.indexed = buildRuleIndex(svc.rules)
-}
-
-// Watch reloads RBAC rules in intervals and on request
-func (svc *service) Watch(ctx context.Context) {
-	go func() {
-		defer sentry.Recover()
-
-		var ticker = time.NewTicker(watchInterval)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-ticker.C:
-				svc.Reload(ctx)
-			case <-svc.f:
-				svc.Reload(ctx)
-			}
+	svc.mux.Lock()
+	if svc.index == nil {
+		svc.index = &wrapperIndex{}
+	}
+	// @todo we might manage to optimize this a bit by grouping
+	for _, r := range rules {
+		// If this resource role combo isn't indexed, we don't care
+		if !svc.index.isIndexed(r.RoleID, r.Resource) {
+			continue
 		}
-	}()
 
-	svc.logger.Debug("watcher initialized")
-}
-
-// FindRulesByRoleID returns all RBAC rules that belong to a role
-func (svc *service) FindRulesByRoleID(roleID uint64) (rr RuleSet) {
-	svc.l.RLock()
-	defer svc.l.RUnlock()
-
-	return ruleByRole(svc.rules, roleID)
-}
-
-// Rules return all roles
-func (svc *service) Rules() (rr RuleSet) {
-	svc.l.RLock()
-	defer svc.l.RUnlock()
-	return svc.rules
-}
-
-// Reload store rules
-func (svc *service) Reload(ctx context.Context) {
-	svc.l.Lock()
-	defer svc.l.Unlock()
-	svc.reloadRules(ctx)
-}
-
-// Clear removes all access control rules
-func (svc *service) Clear() {
-	svc.l.Lock()
-	defer svc.l.Unlock()
-	svc.rules = RuleSet{}
-	svc.indexed = &ruleIndex{}
-}
-
-func (svc *service) reloadRules(ctx context.Context) {
-	rr, _, err := svc.store.SearchRbacRules(ctx, RuleFilter{})
-	svc.logger.Debug(
-		"reloading rules",
-		zap.Error(err),
-		zap.Int("before", len(svc.rules)),
-		zap.Int("after", len(rr)),
-	)
-
-	if err == nil {
-		svc.setRules(rr)
+		// If it is, we need to assure this thing is inside the index now
+		svc.index.add(r.RoleID, r.Resource, r)
+		svc.StatLogger.CacheUpdate(r)
 	}
-}
+	svc.mux.Unlock()
 
-func (svc *service) setRules(rr RuleSet) {
-	svc.rules = rr
-	svc.indexed = buildRuleIndex(rr)
-}
+	// Flush changes to database :)
 
-// UpdateRoles updates RBAC roles
-//
-// Warning: this REPLACES all existing roles that are recognized by RBAC subsystem
-func (svc *service) UpdateRoles(rr ...*Role) {
-	svc.l.Lock()
-	defer svc.l.Unlock()
-
-	stats := statRoles(rr...)
-	svc.logger.Debug(
-		"updating roles",
-		zap.Int("before", len(svc.roles)),
-		zap.Int("after", len(rr)),
-		zap.Int("bypass", stats[BypassRole]),
-		zap.Int("context", stats[ContextRole]),
-		zap.Int("common", stats[CommonRole]),
-		zap.Int("authenticated", stats[AuthenticatedRole]),
-		zap.Int("anonymous", stats[AnonymousRole]),
-	)
-	svc.roles = rr
-}
-
-// flush pushes all changed rules to the store (if service is configured with one)
-func (svc *service) flush(ctx context.Context) (err error) {
-	if svc.store == nil {
-		svc.logger.Debug("rule flushing disabled (no store)")
-		return
-	}
-
-	deletable, updatable, final := flushable(svc.rules)
-
-	err = svc.store.DeleteRbacRule(ctx, deletable...)
+	err = svc.flush(ctx, rules...)
 	if err != nil {
 		return
 	}
-
-	err = svc.store.UpsertRbacRule(ctx, updatable...)
-	if err != nil {
-		return
-	}
-
-	clear(final)
-	svc.rules = final
-	svc.logger.Debug(
-		"flushed rules",
-		zap.Int("deleted", len(deletable)),
-		zap.Int("updated", len(updatable)),
-		zap.Int("final", len(final)),
-	)
 
 	return
 }
 
-// SignificantRoles returns two list of significant roles.
-//
-// See sigRoles on rules for more details
-func (svc *service) SignificantRoles(res Resource, op string) (aRR, dRR []uint64) {
-	svc.l.Lock()
-	defer svc.l.Unlock()
+// AddRole adds an additional role after the service was initialized
+func (svc *Service) AddRole(r *Role) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
 
-	return svc.rules.sigRoles(res.RbacResource(), op)
+	svc.roles = append(svc.roles, r)
+}
+
+// Remove role removes the role from the service
+//
+// @todo this won't clean out the removed rules until the next reload
+func (svc *Service) RemoveRole(r *Role) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
+	for i, xr := range svc.roles {
+		if xr.id != r.id {
+			continue
+		}
+
+		svc.roles = append(svc.roles[:i], svc.roles[i+1:]...)
+		return
+	}
+}
+
+// IndexSize returns the number of indexed role/rule combos
+func (svc *Service) IndexSize() int {
+	if svc.index == nil {
+		return 0
+	}
+
+	return svc.index.getSize()
+}
+
+// Clear cleans out all the data
+func (svc *Service) Clear() {
+	svc.usageCounter = nil
+	svc.index = nil
+	svc.roles = nil
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
+// Supporting
+
+func (svc *Service) check(ctx context.Context, rolesByKind partRoles, op, res string, trace *Trace) (a Access, err error) {
+	// Preflight to resolve some pre-known states which need to bypass the standard flow
+	a, resolved := svc.preflightCheck(rolesByKind)
+	if resolved {
+		return
+	}
+
+	st := evaluationState{op: op, res: res}
+	st.indexedRoles, st.unindexedRoles, err = svc.segmentRoles(rolesByKind, res)
+	if err != nil {
+		return Inherit, err
+	}
+
+	// @todo can we do something with this?
+	svc.logCachePerformance(st.indexedRoles, st.unindexedRoles, res, op)
+
+	if trace != nil {
+		// from this point on, there is a chance trace (if set)
+		// will contain some rules.
+		//
+		// Stable order needs to be ensured: there is no production
+		// code that relies on that but tests might fail and API
+		// response would be flaky.
+		defer sortTraceRules(trace)
+	}
+
+	// @todo should we cache this for n seconds? just in case it's going to happen again soon?
+	st.unindexedRules, err = svc.pullUnindexed(ctx, st.unindexedRoles, op, res)
+	if err != nil {
+		return Inherit, err
+	}
+
+	a, err = svc.evaluate(
+		[]roleKind{ContextRole, CommonRole, AuthenticatedRole, AnonymousRole},
+		trace,
+		st,
+		rolesByKind,
+	)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (svc *Service) evaluate(roleOrder []roleKind, trace *Trace, st evaluationState, rolesByKind partRoles) (a Access, err error) {
+	var (
+		match   *Rule
+		allowed bool
+	)
+
+	// Priority is important here. We want to have
+	// stable RBAC check behaviour and ability
+	// to override allow/deny depending on how niche the role (type) is:
+	//  - context (eg owners) are more niche than common
+	//  - rules for common roles are more important than authenticated and anonymous role types
+	//
+	// Note that bypass roles are intentionally ignored here; if user is member of
+	// bypass role there is no need to check any other rule
+	for _, kind := range roleOrder {
+		// not a member of any role of this kind
+		if len(rolesByKind[kind]) == 0 {
+			continue
+		}
+
+		// reset allowed to false
+		// for each role kind
+		allowed = false
+
+		for r := range rolesByKind[kind] {
+			match = svc.getMatchingRule(st, kind, r)
+
+			// check all rules for each role the security-context
+			if match == nil {
+				// no rules match
+				continue
+			}
+
+			if trace != nil {
+				// if trace is enabled, append
+				// each matching rule
+				trace.Rules = append(trace.Rules, match)
+			}
+
+			if match.Access == Deny {
+				// if we stumble upon Deny we short-circuit the check
+				return resolve(nil, Deny, ""), nil
+			}
+
+			if match.Access == Allow {
+				// allow rule found, we need to check rules on other roles
+				// before we allow it
+				allowed = true
+			}
+		}
+
+		if allowed {
+			// at least one of the roles (per role type) in the security context
+			// allows operation on a resource
+			return resolve(nil, Allow, ""), nil
+		}
+	}
+
+	return
+}
+
+// preflightCheck covers a few edge-case-esk scenarios
+func (svc *Service) preflightCheck(roles partRoles) (a Access, resolved bool) {
+	if member(roles, AnonymousRole) && len(roles) > 1 {
+		// Integrity check; when user is member of anonymous role
+		// should not be member of any other type of role
+		return resolve(nil, Deny, failedIntegrityCheck), true
+	}
+
+	if member(roles, BypassRole) {
+		// if user has at least one bypass role, we allow access
+		return resolve(nil, Allow, bypassRoleMembership), true
+	}
+
+	return Inherit, false
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
+// DB stuff
+
+func (svc *Service) flush(ctx context.Context, rules ...*Rule) (err error) {
+	// @todo is this stil valid?
+	// if svc.store == nil {
+	// 	svc.logger.Debug("rule flushing disabled (no store)")
+	// 	return
+	// }
+
+	upsert, delete := upsertableDeletableRules(rules)
+	err = svc.RuleStorage.DeleteRbacRule(ctx, delete...)
+	if err != nil {
+		return
+	}
+
+	err = svc.RuleStorage.UpsertRbacRule(ctx, upsert...)
+	if err != nil {
+		return
+	}
+
+	if svc.logger != nil {
+		svc.logger.Debug(
+			"flushed rules",
+			zap.Int("deleted", len(delete)),
+			zap.Int("upserted", len(upsert)),
+		)
+	}
+
+	return
+}
+
+func (svc *Service) pullUnindexed(ctx context.Context, unindexed partRoles, op, res string) (out [5]map[uint64][]*Rule, err error) {
+	resPerm := make([]string, 0, 8)
+	resPerm = append(resPerm, res)
+
+	// Get all the resource permissions
+	// @todo get permissions for parent resources; this will probs be some lookup table
+	rr := strings.Split(res, "/")
+	for i := len(rr) - 1; i >= 0; i-- {
+		rr[i] = "*"
+		resPerm = append(resPerm, strings.Join(rr, "/"))
+	}
+
+	for rk, rr := range unindexed {
+		for r := range rr {
+			var auxRr []*Rule
+			auxRr, _, err = svc.RuleStorage.SearchRbacRules(ctx, RuleFilter{
+				RoleID:    r,
+				Resource:  resPerm,
+				Operation: op,
+			})
+			if err != nil {
+				return
+			}
+
+			if out[rk] == nil {
+				out[rk] = map[uint64][]*Rule{
+					r: auxRr,
+				}
+			} else {
+				out[rk][r] = auxRr
+			}
+		}
+	}
+
+	return
+}
+
+func (svc *Service) pullForRole(ctx context.Context, roleID uint64) (out []*Rule, err error) {
+	out, _, err = svc.RuleStorage.SearchRbacRules(ctx, RuleFilter{
+		RoleID: roleID,
+	})
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (svc *Service) pullRules(ctx context.Context, role uint64, resource string) (rules []*Rule, err error) {
+	resPerm := make([]string, 0, 8)
+	resPerm = append(resPerm, resource)
+
+	// Get all the resource permissions
+	// @todo get permissions for parent resources; this will probs be some lookup table
+	rr := strings.Split(resource, "/")
+	for i := len(rr) - 1; i > 0; i-- {
+		rr[i] = "*"
+		resPerm = append(resPerm, strings.Join(rr, "/"))
+	}
+
+	var aux RuleSet
+	aux, _, err = svc.RuleStorage.SearchRbacRules(ctx, RuleFilter{
+		Resource: resPerm,
+		RoleID:   role,
+	})
+
+	rules = append(rules, aux...)
+
+	return
+}
+
+func (svc *Service) loadRoles(ctx context.Context) (out []*Role, err error) {
+	auxRoles, err := svc.cfg.PullInitialRoles(ctx)
+	if err != nil {
+		return
+	}
+
+	for _, ar := range auxRoles {
+		out = append(out, &Role{
+			id:     ar.ID,
+			handle: ar.Handle,
+			kind:   CommonRole,
+		})
+	}
+
+	return
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
+// Utils
+
+// upsertableDeletableRules figures out what rules need to be upserted or deleted
+func upsertableDeletableRules(rules []*Rule) (upsert, delete []*Rule) {
+	for _, r := range rules {
+		if r.Access == Inherit {
+			delete = append(delete, r)
+		} else {
+			upsert = append(upsert, r)
+		}
+	}
+
+	return
+}
+
+func (svc *Service) getMatchingRule(st evaluationState, kind roleKind, role uint64) (rule *Rule) {
+	var (
+		aux   []*Rule
+		rules RuleSet
+	)
+
+	// Indexed
+	aux = svc.index.get(role, st.op, st.res)
+	rules = append(rules, aux...)
+
+	// Unindexed
+	aux = st.unindexedRules[kind][role]
+	rules = append(rules, aux...)
+
+	set := RuleSet(rules)
+	sort.Sort(set)
+
+	for _, s := range set {
+		if s.Access == Inherit {
+			continue
+		}
+
+		return s
+	}
+
+	return nil
+}
+
+// segmentRoles determines what roles are indexed and unindexed
+func (svc *Service) segmentRoles(roles partRoles, resource string) (indexed, unindexed partRoles, err error) {
+	unindexed = partRoles{}
+	indexed = partRoles{}
+
+	unindexed[CommonRole] = make(map[uint64]bool)
+	indexed[CommonRole] = make(map[uint64]bool)
+
+	for k, rg := range roles {
+		for r := range rg {
+			if svc.index.isIndexed(r, resource) {
+				indexed[k][r] = true
+				continue
+			}
+
+			unindexed[k][r] = true
+		}
+	}
+
+	return
 }
 
 // CloneRulesByRoleID clone all rules of a Role S to a specific Role T by removing its existing rules
-func (svc *service) CloneRulesByRoleID(ctx context.Context, fromRoleID uint64, toRoleID ...uint64) (err error) {
+func (svc *Service) CloneRulesByRoleID(ctx context.Context, fromRoleID uint64, toRoleID ...uint64) (err error) {
 	var (
 		updatedRules RuleSet
 	)
 
 	// Make sure rules of fromRoleID stays intact
-	rr := svc.FindRulesByRoleID(fromRoleID)
+	rr, err := svc.pullForRole(ctx, fromRoleID)
+	if err != nil {
+		return
+	}
 
 	for _, roleID := range toRoleID {
 		// Remove existing rules
-		existingRules := svc.FindRulesByRoleID(roleID)
+		var existingRules []*Rule
+		existingRules, err = svc.pullForRole(ctx, roleID)
+		if err != nil {
+			return
+		}
+
 		for _, rule := range existingRules {
 			// Make sure to remove existing rules
 			rule.Access = Inherit
@@ -343,4 +708,234 @@ func (svc *service) CloneRulesByRoleID(ctx context.Context, fromRoleID uint64, t
 	}
 
 	return svc.Grant(ctx, updatedRules...)
+}
+
+// incCounter sends some messages to the usage counter
+func (svc *Service) incCounter(roles partRoles, res Resource) {
+	if svc.cfg.Synchronous {
+		svc.incCounterSync(roles, res)
+	} else {
+		svc.incCounterAsync(roles, res)
+	}
+}
+
+func (svc *Service) incCounterSync(roles partRoles, res Resource) {
+	for _, rr := range roles {
+		for r := range rr {
+			svc.usageCounter.inc(fmt.Sprintf("%d:%s", r, res.RbacResource()))
+		}
+	}
+}
+
+func (svc *Service) incCounterAsync(roles partRoles, res Resource) {
+	for _, rr := range roles {
+		for r := range rr {
+			svc.usageCounter.incChan <- fmt.Sprintf("%d:%s", r, res.RbacResource())
+		}
+	}
+}
+
+func (svc *Service) updateWrapperIndex(ctx context.Context) (err error) {
+	switch svc.cfg.ReindexStrategy {
+	case ReindexStrategyMemory:
+		return svc.updateWrapperIndexMemFirst(ctx)
+	case ReindexStrategySpeed:
+		return svc.updateWrapperIndexSpeedFirst(ctx)
+	}
+
+	return
+}
+
+func (svc *Service) updateWrapperIndexMemFirst(ctx context.Context) (err error) {
+	auxIndex, err := svc.buildNewIndex(ctx)
+	if err != nil {
+		return
+	}
+
+	svc.swapIndexes(ctx, auxIndex)
+	return
+}
+
+func (svc *Service) updateWrapperIndexSpeedFirst(ctx context.Context) (err error) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
+	svc.index = nil
+
+	auxIndex, err := svc.buildNewIndex(ctx)
+	if err != nil {
+		return
+	}
+
+	svc.index = auxIndex
+	return
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // // //
+// Boilerplate & state management stuff
+
+func (svc *Service) indexForResources(ctx context.Context, res ...string) (index *wrapperIndex, err error) {
+	index = &wrapperIndex{}
+	var auxRules []*Rule
+
+	for _, b := range res {
+		pp := strings.SplitN(b, ":", 2)
+		role := cast.ToUint64(pp[0])
+		resource := pp[1]
+
+		auxRules, err = svc.pullRules(ctx, role, resource)
+		if err != nil {
+			return
+		}
+
+		index.add(role, resource, auxRules...)
+	}
+
+	return
+}
+
+func (svc *Service) loadIndex(ctx context.Context, s rbacRulesStore, allRoles []*Role) (out *wrapperIndex, err error) {
+	// How do we figure out what resources we have?
+	// do we just start from empty?
+
+	// I suppose this fnc would provide some assortment of resources...
+	// For now, we'll just yank out some list of records?
+	// At the end get some modules and stuff?
+	// Records would be those things that need max performance I suppose so it'd be a good starting point
+
+	if svc.cfg.PullInitialState == nil {
+		return &wrapperIndex{}, nil
+	}
+
+	rr, err := svc.cfg.PullInitialState(ctx, svc.cfg.MaxIndexSize)
+	if err != nil {
+		return
+	}
+
+	return svc.indexForResources(ctx, rr...)
+}
+
+func (svc *Service) buildNewIndex(ctx context.Context) (index *wrapperIndex, err error) {
+	svc.usageCounter.lock.RLock()
+	defer svc.usageCounter.lock.RUnlock()
+
+	res := svc.usageCounter.bestPerformers(svc.cfg.MaxIndexSize)
+	return svc.indexForResources(ctx, res...)
+}
+
+func (svc *Service) swapIndexes(ctx context.Context, auxIndex *wrapperIndex) {
+	if auxIndex == nil {
+		return
+	}
+
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
+	svc.index = auxIndex
+}
+
+// Performance monitoring
+
+func (svc *Service) logCachePerformance(hits, misses partRoles, resource, op string) {
+	{
+		rls := make([]uint64, 0, 4)
+
+		for _, rr := range hits {
+			for r := range rr {
+				rls = append(rls, r)
+			}
+		}
+
+		if len(rls) > 0 {
+			svc.StatLogger.CacheHit(rls, resource, op)
+		}
+	}
+
+	{
+		rls := make([]uint64, 0, 4)
+
+		for _, rr := range misses {
+			for r := range rr {
+				rls = append(rls, r)
+			}
+		}
+
+		if len(rls) > 0 {
+			svc.StatLogger.CacheMiss(rls, resource, op)
+		}
+	}
+}
+
+// Debugger stuff
+
+func (svc *Service) DebuggerSetIndex(role uint64, resource string, rules ...*Rule) (err error) {
+	index := &wrapperIndex{}
+
+	index.add(role, resource, rules...)
+
+	svc.index = index
+
+	return
+}
+
+func (svc *Service) DebuggerAddIndex(role uint64, resource string, rules ...*Rule) (err error) {
+	index := svc.index
+
+	index.add(role, resource, rules...)
+
+	svc.index = index
+
+	return
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
+// Processing n stuff
+
+func (svc *Service) watch(ctx context.Context) {
+	tInt := svc.cfg.IndexFlushInterval
+	if tInt == 0 {
+		tInt = time.Minute * 5
+	}
+
+	t := time.NewTicker(time.Minute * 5)
+	rexInt := svc.cfg.IndexFlushInterval
+	if rexInt == 0 {
+		rexInt = time.Minute * 30
+	}
+
+	rex := time.NewTicker(time.Minute * 30)
+
+	flshInt := svc.cfg.IndexFlushInterval
+	if flshInt == 0 {
+		flshInt = time.Minute * 5
+	}
+	tFlush := time.NewTicker(flshInt)
+
+	lg := svc.logger.Named("rbac service wrapper")
+
+	go func() {
+		for {
+			select {
+			case <-t.C:
+				lg.Info("tick")
+
+			case <-rex.C:
+				lg.Info("reindex")
+
+				err := svc.updateWrapperIndex(ctx)
+				if err != nil {
+					lg.Error("reindex failed", zap.Error(err))
+				}
+
+			case <-tFlush.C:
+				err := svc.cfg.FlushIndexState(ctx, svc.index.getIndexed())
+				if err != nil {
+					lg.Error("failed to flush the index state", zap.Error(err))
+				}
+
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
 }

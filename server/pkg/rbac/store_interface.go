@@ -17,4 +17,8 @@ type (
 		// @todo this isn't ok since we're referencing sys types
 		SearchRoles(ctx context.Context, f types.RoleFilter) (types.RoleSet, types.RoleFilter, error)
 	}
+
+	rbacRoleStore interface {
+		SearchRoles(ctx context.Context, f types.RoleFilter) (types.RoleSet, types.RoleFilter, error)
+	}
 )

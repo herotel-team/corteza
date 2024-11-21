@@ -23,10 +23,6 @@ type (
 
 		// incChan sends instructions to the counter re. key K increment
 		incChan chan K
-		// sigEvict lets the counter notify the manager what key K should be evicted
-		sigEvict chan K
-		// @todo remove
-		sigChan chan K
 
 		// decayInterval denotes in what interval the decay factor should apply
 		decayInterval time.Duration
@@ -152,6 +148,10 @@ func (svc *usageCounter[K]) worstPerformers(n int) (out []K) {
 // procNew notes a new key in the thing, defaults and stuff
 func (svc *usageCounter[K]) procNew(key K) {
 	n := time.Now()
+	if svc.index == nil {
+		svc.index = make(map[K]counterItem[K])
+	}
+
 	svc.index[key] = counterItem[K]{
 		score:      1,
 		added:      n,
@@ -182,19 +182,12 @@ func (svc *usageCounter[K]) watch(ctx context.Context) {
 	}
 
 	decayT := time.NewTicker(svc.decayInterval)
-	evictT := time.NewTicker(svc.cleanupInterval)
 
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
 				return
-
-			case <-evictT.C:
-				evicted := svc.evict()
-				for _, e := range evicted {
-					svc.sigEvict <- e
-				}
 
 			case <-decayT.C:
 				svc.decay()
