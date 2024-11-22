@@ -116,10 +116,6 @@ trigger:
   tooltip: Trigger the workflow execution based on configuration
 tooltip:
   configure-step: Configure step
-content:
-  label: Content
-  short: Content
-  tooltip: Content block used for text annotations
 path:
   label: Path
   short: Path
