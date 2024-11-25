@@ -257,18 +257,27 @@
                             </div>
                           </th>
 
-                          <th class="text-primary" scope="col">
+                          <th
+                            class="text-primary"
+                            scope="col"
+                          >
                             {{ $t('general:label.type') }}
                           </th>
 
                           <th scope="col" />
                           <th scope="col" />
 
-                          <th class="text-primary text-center pr-3" scope="col">
+                          <th
+                            class="text-primary text-center pr-3"
+                            scope="col"
+                          >
                             {{ $t('general:label.required') }}
                           </th>
 
-                          <th class="text-primary text-center pl-2" scope="col">
+                          <th
+                            class="text-primary text-center pl-2"
+                            scope="col"
+                          >
                             {{ $t('general:label.multi') }}
                           </th>
 

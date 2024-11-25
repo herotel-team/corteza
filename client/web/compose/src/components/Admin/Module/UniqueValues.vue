@@ -77,13 +77,22 @@
               <th scope="col">
                 {{ $t("type") }}
               </th>
-              <th scope="col" style="width: 250px;">
+              <th
+                scope="col"
+                style="width: 250px;"
+              >
                 {{ $t("valueModifiers") }}
               </th>
-              <th scope="col" style="width: 250px;">
+              <th
+                scope="col"
+                style="width: 250px;"
+              >
                 {{ $t("multiValues") }}
               </th>
-              <th scope="col" style="width: 150px;" />
+              <th
+                scope="col"
+                style="width: 150px;"
+              />
             </tr>
           </thead>
 

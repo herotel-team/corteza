@@ -124,7 +124,10 @@
           <tr>
             <th scope="col" />
 
-            <th class="d-flex align-items-center text-primary" scope="col">
+            <th
+              class="d-flex align-items-center text-primary"
+              scope="col"
+            >
               {{ $t('tabs.table.columns.title.label') }}
               <c-hint
                 :tooltip="$t('interpolationFootnote', ['${record.values.fieldName}', '${recordID}', '${ownerID}', '${userID}'])"

@@ -25,7 +25,7 @@
           :label-cols-xl="options.horizontalFieldLayoutEnabled && '5'"
           :content-cols-md="options.horizontalFieldLayoutEnabled && '6'"
           :content-cols-xl="options.horizontalFieldLayoutEnabled && '7'"
-          :class="columnWrapClass"
+          :class="`field-container ${columnWrapClass}`"
           :style="fieldWidth"
         >
           <template #label>
@@ -167,7 +167,7 @@ export default {
 
     fieldLayoutClass () {
       const classes = {
-        default: 'd-flex flex-column',
+        default: 'd-flex flex-column gap-2',
         noWrap: 'd-flex gap-2',
         wrap: 'row no-gutters',
       }
