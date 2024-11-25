@@ -21,7 +21,7 @@
         <div
           v-if="canDisplay(field)"
           :key="field.id"
-          :class="columnWrapClass"
+          :class="`field-container ${columnWrapClass}`"
           :style="fieldWidth"
         >
           <field-editor

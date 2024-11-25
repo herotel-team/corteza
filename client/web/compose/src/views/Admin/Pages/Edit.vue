@@ -258,7 +258,10 @@
                 >
                   <b-thead>
                     <tr>
-                      <th scope="col" style="width: 40px;" />
+                      <th
+                        scope="col"
+                        style="width: 40px;"
+                      />
                       <th
                         class="text-primary"
                         scope="col"
@@ -273,7 +276,10 @@
                       >
                         {{ $t('page-layout.handle') }}
                       </th>
-                      <th scope="col" style="min-width: 100px;" />
+                      <th
+                        scope="col"
+                        style="min-width: 100px;"
+                      />
                     </tr>
                   </b-thead>
 

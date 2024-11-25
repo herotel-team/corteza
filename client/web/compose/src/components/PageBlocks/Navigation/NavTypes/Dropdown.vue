@@ -43,13 +43,22 @@
       >
         <thead>
           <tr class="text-primary">
-            <th scope="col" style="min-width: 200px;">
+            <th
+              scope="col"
+              style="min-width: 200px;"
+            >
               {{ $t("navigation.text") }}
             </th>
-            <th scope="col" style="min-width: 200px;">
+            <th
+              scope="col"
+              style="min-width: 200px;"
+            >
               {{ $t("navigation.url") }}
             </th>
-            <th scope="col" style="min-width: 200px;">
+            <th
+              scope="col"
+              style="min-width: 200px;"
+            >
               {{ $t('navigation.openIn') }}
             </th>
             <th
