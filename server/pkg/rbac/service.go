@@ -19,7 +19,10 @@ type (
 		mux        sync.RWMutex
 		cfg        Config
 		logger     *zap.Logger
-		StatLogger statLogger
+		StatLogger *statsLogger
+
+		noop       bool
+		noopAccess Access
 
 		usageCounter *usageCounter[string]
 		index        *wrapperIndex
@@ -56,15 +59,11 @@ type (
 		// IndexFlushInterval states how often the index state should be flushed to the database
 		IndexFlushInterval time.Duration
 
-		// StatLogger provides the methods to log some performance metrices
-		StatLogger statLogger
 		// RuleStorage provides the methods to interact with rules
 		RuleStorage rbacRulesStore
 		// RoleStorage provides the methods to interact with roles
 		RoleStorage rbacRoleStore
 
-		// PullInitialRoles provides the initial set of roles we can use
-		PullInitialRoles func(ctx context.Context) ([]*types.Role, error)
 		// PullInitialState provides the initial index state
 		//
 		// The string slice provides index keys which should then be further processed
@@ -86,6 +85,35 @@ type (
 
 		res string
 		op  string
+	}
+
+	expCtrItem struct {
+		Key   string  `json:"key"`
+		Score float64 `json:"score"`
+
+		// added denotes when the item was added to the counter
+		Added time.Time `json:"added"`
+		// lastScored denotes when the item was last scored (either via decay or access)
+		LastScored time.Time `json:"lastScored"`
+		// lastAccess denotes when the item was last accessed, needed
+		LastAccess time.Time `json:"lastAccess"`
+	}
+
+	Stats struct {
+		CacheHits    uint          `json:"cacheHits"`
+		CacheMisses  uint          `json:"cacheMisses"`
+		CacheUpdates uint          `json:"cacheUpdates"`
+		AvgTiming    time.Duration `json:"avgTiming"`
+		MinTiming    time.Duration `json:"minTiming"`
+		MaxTiming    time.Duration `json:"maxTiming"`
+
+		IndexSize int `json:"indexSize"`
+
+		LastHits    []string        `json:"lastHits"`
+		LastMisses  []string        `json:"lastMisses"`
+		LastTimings []time.Duration `json:"lastTimings"`
+
+		Counters []expCtrItem `json:"counters"`
 	}
 
 	RuleFilter struct {
@@ -138,21 +166,40 @@ func SetGlobal(svc *Service) {
 	gWrapper = svc
 }
 
-// RbacService initializes the wrapper service with all the required surrounding bits
-func RbacService(ctx context.Context, l *zap.Logger, store rbacRulesStore, cc Config) (svc *Service, err error) {
-	cc = defaultWrapperConfig(cc)
+// NoopSvc creates a blank RBAC service which always returns the stated access
+func NoopSvc(access Access) (svc *Service) {
+	return &Service{
+		noop:       true,
+		noopAccess: access,
+	}
+}
+
+// NewService initializes the wrapper service with all the required surrounding bits
+func NewService(ctx context.Context, l *zap.Logger, store rbacRulesStore, cc Config) (svc *Service, err error) {
+	cc = defaultWrapperConfig(l, cc)
 
 	usageCounter := &usageCounter[string]{
-		incChan: make(chan string, 256),
+		incChan: make(chan string, 1024),
 
 		decayFactor:     cc.DecayFactor,
 		decayInterval:   cc.DecayInterval,
 		cleanupInterval: cc.CleanupInterval,
+
+		checkKeyInclusion: func(k string, role uint64) bool {
+			return strings.HasPrefix(k, strconv.FormatUint(role, 10))
+		},
+	}
+
+	sl := &statsLogger{
+		log:           l.Named("rbac stats logger"),
+		cacheHitChan:  make(chan statsWrap, 1024),
+		cacheMissChan: make(chan statsWrap, 1024),
+		timingChan:    make(chan time.Duration, 1024),
 	}
 
 	svc = &Service{
 		cfg:        cc,
-		StatLogger: cc.StatLogger,
+		StatLogger: sl,
 		logger:     l,
 
 		usageCounter: usageCounter,
@@ -173,11 +220,12 @@ func RbacService(ctx context.Context, l *zap.Logger, store rbacRulesStore, cc Co
 
 	usageCounter.watch(ctx)
 	svc.watch(ctx)
+	sl.watch(ctx)
 
 	return
 }
 
-func defaultWrapperConfig(base Config) (out Config) {
+func defaultWrapperConfig(l *zap.Logger, base Config) (out Config) {
 	out = base
 
 	// -1 disables partitioning so everything is pulled in memory
@@ -190,11 +238,6 @@ func defaultWrapperConfig(base Config) (out Config) {
 		out.FlushIndexState = func(ctx context.Context, s []string) error { return nil }
 	}
 
-	// Noop to avoid branching down the line
-	if base.StatLogger == nil {
-		out.StatLogger = &noopStatLogger{}
-	}
-
 	if base.ReindexStrategy == ReindexStrategyDefault {
 		out.ReindexStrategy = ReindexStrategyMemory
 	}
@@ -203,17 +246,29 @@ func defaultWrapperConfig(base Config) (out Config) {
 }
 
 // Can returns true if the given resource can be accessed
-func (svc *Service) Can(ses Session, op string, res Resource) (ok bool, err error) {
+func (svc *Service) Can(ses Session, op string, res Resource) (ok bool) {
 	ac, err := svc.Check(ses, op, res)
 	if err != nil {
-		return
+		svc.logger.Error("check failed with error",
+			zap.String("op", op),
+			zap.String("resource", res.RbacResource()),
+			zap.Error(err),
+		)
+		return false
 	}
 
-	return ac == Allow, nil
+	return ac == Allow
 }
 
 // Check returns the RBAC evaluation of the resource access
 func (svc *Service) Check(ses Session, op string, res Resource) (a Access, err error) {
+	if svc.noop {
+		svc.logger.Debug(fmt.Sprintf("check bypass %v %v %v: %v", ses, op, res, svc.noopAccess))
+		return svc.noopAccess, nil
+	}
+
+	svc.logger.Debug(fmt.Sprintf("check %v %v %v", ses, op, res))
+
 	if hasWildcards(res.RbacResource()) {
 		// prevent use of wildcard resources for checking permissions
 		return Inherit, nil
@@ -320,12 +375,84 @@ func (svc *Service) Grant(ctx context.Context, rules ...*Rule) (err error) {
 	return
 }
 
+func (svc *Service) Stats() (out Stats, err error) {
+	svc.usageCounter.lock.RLock()
+	defer svc.usageCounter.lock.RUnlock()
+
+	for k, itm := range svc.usageCounter.index {
+		out.Counters = append(out.Counters, expCtrItem{
+			Key:        k,
+			Score:      itm.score,
+			Added:      itm.added,
+			LastScored: itm.lastScored,
+			LastAccess: itm.lastAccess,
+		})
+	}
+
+	out.CacheHits,
+		out.CacheMisses,
+		out.AvgTiming,
+		out.MinTiming,
+		out.MaxTiming,
+		out.LastHits,
+		out.LastMisses,
+		out.LastTimings = svc.StatLogger.Stats()
+
+	out.IndexSize = svc.index.getSize()
+
+	return
+}
+
 // AddRole adds an additional role after the service was initialized
 func (svc *Service) AddRole(r *Role) {
 	svc.mux.Lock()
 	defer svc.mux.Unlock()
 
 	svc.roles = append(svc.roles, r)
+}
+
+func (svc *Service) UpdateRoles(rr ...*Role) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
+	stats := statRoles(rr...)
+	svc.logger.Debug(
+		"updating roles",
+		zap.Int("before", len(svc.roles)),
+		zap.Int("after", len(rr)),
+		zap.Int("bypass", stats[BypassRole]),
+		zap.Int("context", stats[ContextRole]),
+		zap.Int("common", stats[CommonRole]),
+		zap.Int("authenticated", stats[AuthenticatedRole]),
+		zap.Int("anonymous", stats[AnonymousRole]),
+	)
+
+	removed := removedRoles(svc.roles, rr...)
+	svc.cleanupCounter(removed...)
+
+	// @todo log update stats?
+	svc.roles = rr
+}
+
+// FindRulesByRoleID returns all RBAC rules that belong to a role
+func (svc *Service) FindRulesByRoleID(ctx context.Context, roleID uint64) (rr RuleSet, err error) {
+	aux, _, err := svc.RuleStorage.SearchRbacRules(ctx, RuleFilter{
+		RoleID: roleID,
+	})
+	if err != nil {
+		return
+	}
+
+	for _, x := range aux {
+		rr = append(rr, &Rule{
+			RoleID:    x.RoleID,
+			Resource:  x.Resource,
+			Operation: x.Operation,
+			Access:    x.Access,
+		})
+	}
+
+	return
 }
 
 // Remove role removes the role from the service
@@ -352,6 +479,30 @@ func (svc *Service) IndexSize() int {
 	}
 
 	return svc.index.getSize()
+}
+
+// SignificantRoles returns two list of significant roles.
+//
+// See sigRoles on rules for more details
+func (svc *Service) SignificantRoles(ctx context.Context, res Resource, op string) (aRR, dRR []uint64, err error) {
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
+
+	aux, _, err := svc.RuleStorage.SearchRbacRules(ctx, RuleFilter{
+		Resource:  []string{res.RbacResource()},
+		Operation: op,
+	})
+	if err != nil {
+		return
+	}
+
+	aRR, dRR = aux.sigRoles(res.RbacResource(), op)
+	return
+}
+
+func (svc *Service) Rules(ctx context.Context) (out RuleSet, err error) {
+	out, _, err = svc.RuleStorage.SearchRbacRules(ctx, RuleFilter{})
+	return
 }
 
 // Clear cleans out all the data
@@ -391,10 +542,13 @@ func (svc *Service) check(ctx context.Context, rolesByKind partRoles, op, res st
 	}
 
 	// @todo should we cache this for n seconds? just in case it's going to happen again soon?
-	st.unindexedRules, err = svc.pullUnindexed(ctx, st.unindexedRoles, op, res)
+	var timing time.Duration
+	st.unindexedRules, timing, err = svc.pullUnindexed(ctx, st.unindexedRoles, op, res)
 	if err != nil {
 		return Inherit, err
 	}
+
+	svc.logDbTiming(timing)
 
 	a, err = svc.evaluate(
 		[]roleKind{ContextRole, CommonRole, AuthenticatedRole, AnonymousRole},
@@ -518,12 +672,17 @@ func (svc *Service) flush(ctx context.Context, rules ...*Rule) (err error) {
 	return
 }
 
-func (svc *Service) pullUnindexed(ctx context.Context, unindexed partRoles, op, res string) (out [5]map[uint64][]*Rule, err error) {
+func (svc *Service) pullUnindexed(ctx context.Context, unindexed partRoles, op, res string) (out [5]map[uint64][]*Rule, timing time.Duration, err error) {
 	resPerm := make([]string, 0, 8)
 	resPerm = append(resPerm, res)
 
 	// Get all the resource permissions
 	// @todo get permissions for parent resources; this will probs be some lookup table
+	now := time.Now()
+	defer func() {
+		timing = time.Since(now)
+	}()
+
 	rr := strings.Split(res, "/")
 	for i := len(rr) - 1; i >= 0; i-- {
 		rr[i] = "*"
@@ -589,8 +748,25 @@ func (svc *Service) pullRules(ctx context.Context, role uint64, resource string)
 	return
 }
 
+func (svc *Service) ReloadRoles(ctx context.Context) (err error) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
+	crt := svc.roles
+
+	svc.roles, err = svc.loadRoles(ctx)
+	if err != nil {
+		return
+	}
+
+	rmd := removedRoles(crt, svc.roles...)
+	svc.cleanupCounter(rmd...)
+
+	return
+}
+
 func (svc *Service) loadRoles(ctx context.Context) (out []*Role, err error) {
-	auxRoles, err := svc.cfg.PullInitialRoles(ctx)
+	auxRoles, _, err := svc.cfg.RoleStorage.SearchRoles(ctx, types.RoleFilter{})
 	if err != nil {
 		return
 	}
@@ -661,8 +837,16 @@ func (svc *Service) segmentRoles(roles partRoles, resource string) (indexed, uni
 	for k, rg := range roles {
 		for r := range rg {
 			if svc.index.isIndexed(r, resource) {
+				if indexed[k] == nil {
+					indexed[k] = make(map[uint64]bool)
+				}
+
 				indexed[k][r] = true
 				continue
+			}
+
+			if unindexed[k] == nil {
+				unindexed[k] = make(map[uint64]bool)
 			}
 
 			unindexed[k][r] = true
@@ -719,6 +903,14 @@ func (svc *Service) incCounter(roles partRoles, res Resource) {
 	}
 }
 
+func (svc *Service) cleanupCounter(roles ...*Role) {
+	if svc.cfg.Synchronous {
+		svc.cleanupCounterSync(roles...)
+	} else {
+		svc.cleanupCounterAsync(roles...)
+	}
+}
+
 func (svc *Service) incCounterSync(roles partRoles, res Resource) {
 	for _, rr := range roles {
 		for r := range rr {
@@ -732,6 +924,18 @@ func (svc *Service) incCounterAsync(roles partRoles, res Resource) {
 		for r := range rr {
 			svc.usageCounter.incChan <- fmt.Sprintf("%d:%s", r, res.RbacResource())
 		}
+	}
+}
+
+func (svc *Service) cleanupCounterSync(roles ...*Role) {
+	for _, r := range roles {
+		gWrapper.usageCounter.cleanRoleKeys(r.id)
+	}
+}
+
+func (svc *Service) cleanupCounterAsync(roles ...*Role) {
+	for _, r := range roles {
+		svc.usageCounter.rmChan <- r.id
 	}
 }
 
@@ -835,8 +1039,31 @@ func (svc *Service) swapIndexes(ctx context.Context, auxIndex *wrapperIndex) {
 }
 
 // Performance monitoring
+func (svc *Service) logDbTiming(timing time.Duration) {
+	if svc.cfg.Synchronous {
+		svc.logAccessSync(timing)
+	} else {
+		svc.logAccessAsync(timing)
+	}
+}
+
+func (svc *Service) logAccessSync(timing time.Duration) {
+	svc.StatLogger.Timing(timing)
+}
+
+func (svc *Service) logAccessAsync(timing time.Duration) {
+	svc.StatLogger.timingChan <- timing
+}
 
 func (svc *Service) logCachePerformance(hits, misses partRoles, resource, op string) {
+	if svc.cfg.Synchronous {
+		svc.logCachePerformanceSync(hits, misses, resource, op)
+	} else {
+		svc.logCachePerformanceAsync(hits, misses, resource, op)
+	}
+}
+
+func (svc *Service) logCachePerformanceSync(hits, misses partRoles, resource, op string) {
 	{
 		rls := make([]uint64, 0, 4)
 
@@ -862,6 +1089,44 @@ func (svc *Service) logCachePerformance(hits, misses partRoles, resource, op str
 
 		if len(rls) > 0 {
 			svc.StatLogger.CacheMiss(rls, resource, op)
+		}
+	}
+}
+
+func (svc *Service) logCachePerformanceAsync(hits, misses partRoles, resource, op string) {
+	// Hits
+	{
+		rls := make([]uint64, 0, 4)
+
+		for _, rr := range hits {
+			for r := range rr {
+				rls = append(rls, r)
+			}
+		}
+
+		if len(rls) > 0 {
+			svc.StatLogger.cacheHitChan <- statsWrap{
+				roles:    rls,
+				resource: resource, op: op,
+			}
+		}
+	}
+
+	// Misses
+	{
+		rls := make([]uint64, 0, 4)
+
+		for _, rr := range misses {
+			for r := range rr {
+				rls = append(rls, r)
+			}
+		}
+
+		if len(rls) > 0 {
+			svc.StatLogger.cacheMissChan <- statsWrap{
+				roles:    rls,
+				resource: resource, op: op,
+			}
 		}
 	}
 }
