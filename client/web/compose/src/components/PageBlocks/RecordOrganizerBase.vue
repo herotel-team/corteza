@@ -362,13 +362,25 @@ export default {
         values[groupField] = group
       }
 
-      if (this.options.displayOption === 'modal' || this.inModal) {
+      const route = {
+        name: 'page.record.create',
+        params: { pageID },
+        values,
+        query: null,
+        edit: true,
+      }
+
+      if (this.inModal || this.options.displayOption === 'modal') {
         this.$root.$emit('show-record-modal', {
           recordID: NoID,
-          recordPageID: (this.roRecordPage || {}).pageID,
+          recordPageID: pageID,
+          values,
+          edit: true,
         })
+      } else if (this.options.displayOption === 'newTab') {
+        window.open(this.$router.resolve(route).href)
       } else {
-        this.$router.push({ name: 'page.record.create', params: { pageID, values: values, refRecord: this.record } })
+        this.$router.push(route)
       }
     },
 
