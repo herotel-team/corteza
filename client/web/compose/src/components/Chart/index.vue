@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex flex-column align-items-center justify-content-center h-100 position-relative">
+  <div class="d-flex h-100 w-100 position-relative">
     <div
       v-if="processing"
       class="d-flex flex-column align-items-center justify-content-center flex-fill"
@@ -7,8 +7,15 @@
       <b-spinner />
     </div>
 
+    <label
+      v-else-if="error"
+      class="text-primary p-3"
+    >
+      {{ error }}
+    </label>
+
     <c-chart
-      v-if="renderer"
+      v-else-if="renderer"
       :chart="renderer"
       class="flex-fill p-1"
       @click="drillDown"
@@ -50,6 +57,7 @@ export default {
 
   data () {
     return {
+      error: undefined,
       processing: false,
 
       valueMap: new Map(),
@@ -87,6 +95,7 @@ export default {
     }),
 
     async updateChart () {
+      this.error = undefined
       this.renderer = undefined
 
       const [report = {}] = this.chart.config.reports
@@ -203,8 +212,8 @@ export default {
 
         this.renderer = chart.makeOptions(data)
       } catch (e) {
+        this.error = this.toastErrorHandler(this.$t('chart.optionsBuildFailed'))(e)
         this.processing = false
-        this.toastErrorHandler(this.$t('chart.optionsBuildFailed'))(e)
       }
 
       setTimeout(() => {
@@ -243,11 +252,6 @@ export default {
       if (handle && this.chart && this.chart.handle === handle) {
         this.updateChart()
       }
-    },
-
-    error (msg) {
-      /* eslint-disable no-console */
-      console.error(msg)
     },
 
     setDefaultValues () {

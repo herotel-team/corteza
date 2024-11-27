@@ -3,8 +3,16 @@
     v-bind="$props"
     v-on="$listeners"
   >
+    <label
+      v-if="error"
+      class="text-primary p-3"
+    >
+      {{ error }}
+    </label>
+
     <div
-      class="rt-content px-3 py-2"
+      v-else
+      class="rt-content p-3"
     >
       <p
         :style="{ 'white-space': 'pre-wrap' }"
@@ -21,17 +29,39 @@ import { NoID } from '@cortezaproject/corteza-js'
 export default {
   extends: base,
 
-  computed: {
-    contentBody () {
-      const { body = '' } = this.options
+  data () {
+    return {
+      error: null,
+      contentBody: '',
+    }
+  },
 
-      return evaluatePrefilter(body, {
-        record: this.record,
-        user: this.$auth.user || {},
-        recordID: (this.record || {}).recordID || NoID,
-        ownerID: (this.record || {}).ownedBy || NoID,
-        userID: (this.$auth.user || {}).userID || NoID,
-      })
+  watch: {
+    'options.body': {
+      immediate: true,
+      handler () {
+        this.makeContentBody()
+      },
+    },
+  },
+
+  methods: {
+    makeContentBody () {
+      this.error = null
+
+      try {
+        const { body = '' } = this.options
+
+        this.contentBody = evaluatePrefilter(body, {
+          record: this.record,
+          user: this.$auth.user || {},
+          recordID: (this.record || {}).recordID || NoID,
+          ownerID: (this.record || {}).ownedBy || NoID,
+          userID: (this.$auth.user || {}).userID || NoID,
+        })
+      } catch (e) {
+        this.error = this.getToastMessage(e)
+      }
     },
   },
 }

@@ -2,7 +2,7 @@ export default {
   methods: {
     toastSuccess (message, title = undefined) {
       if (title === undefined) {
-        title = this.$t('notification:general:success')
+        title = this.$t('notification:general.success')
       }
 
       this.toast(message, { title, variant: 'success' })
@@ -10,15 +10,23 @@ export default {
 
     toastWarning (message, title = undefined) {
       if (title === undefined) {
-        title = this.$t('notification:general:warning')
+        title = this.$t('notification:general.warning')
       }
 
       this.toast(message, { title, variant: 'warning' })
     },
 
+    toastInfo (message, title = undefined) {
+      if (title === undefined) {
+        title = this.$t('notification:general.info')
+      }
+
+      this.toast(message, { title, variant: 'info' })
+    },
+
     toastDanger (message, title = undefined) {
       if (title === undefined) {
-        title = this.$t('notification:general:error')
+        title = this.$t('notification:general.error')
       }
 
       this.toast(message, { title, variant: 'danger' })
@@ -26,6 +34,14 @@ export default {
 
     toast (msg, opt = { variant: 'success' }) {
       this.$root.$bvToast.toast(msg, opt)
+    },
+
+    getToastMessage (err) {
+      if (err.message && err.message.startsWith('notification')) {
+        return this.$t(`notification:${err.message.substring('notification.'.length)}`)
+      }
+
+      return err.message
     },
 
     toastErrorHandler (opt) {
@@ -36,13 +52,13 @@ export default {
       const { prefix, title } = opt
 
       return (err = {}) => {
-        // only messages starting with 'notification:' or 'notification.' should be translated
-        if (err.message && err.message.startsWith('notification')) {
-          err.message = this.$t(`notification:${err.message.substring('notification.'.length)}`)
-        }
+        err.message = this.getToastMessage(err)
+
         // all other messages should be shown as they are
         const msg = err.message ? `${prefix}: ${err.message}` : prefix
         this.toastDanger(msg, title)
+
+        return err.message
       }
     },
   },

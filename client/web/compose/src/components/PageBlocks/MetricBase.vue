@@ -11,6 +11,13 @@
       <b-spinner />
     </div>
 
+    <label
+      v-else-if="error"
+      class="text-primary p-3"
+    >
+      {{ error }}
+    </label>
+
     <template v-else>
       <div
         v-for="(m, mi) in options.metrics"
@@ -66,6 +73,8 @@ export default {
   data () {
     return {
       processing: false,
+      error: undefined,
+
       reports: [],
 
       abortableRequests: [],
@@ -148,6 +157,7 @@ export default {
      * Pulls fresh data from the API
      */
     async refresh () {
+      this.error = undefined
       this.processing = true
 
       try {
@@ -195,7 +205,9 @@ export default {
         setTimeout(() => {
           this.processing = false
         }, 300)
-      } catch {
+      } catch (e) {
+        this.error = this.getToastMessage(e)
+
         setTimeout(() => {
           this.processing = false
         }, 300)
