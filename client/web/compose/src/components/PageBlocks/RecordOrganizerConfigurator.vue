@@ -75,9 +75,9 @@
           >
             <c-input-select
               v-model="options.labelField"
-              :options="selectedModuleFields"
+              :options="allFields"
               :reduce="o => o.name"
-              :get-option-label="fieldLabel"
+              :get-option-label="getFieldLabel"
               :placeholder="$t('general.label.none')"
             />
             <b-form-text>{{ $t('recordOrganizer.labelField.footnote') }}</b-form-text>
@@ -94,9 +94,9 @@
           >
             <c-input-select
               v-model="options.descriptionField"
-              :options="selectedModuleFields"
+              :options="allFields"
               :reduce="o => o.name"
-              :get-option-label="descriptionLabel"
+              :get-option-label="getFieldLabel"
               :placeholder="$t('general.label.none')"
             />
 
@@ -118,7 +118,7 @@
               v-model="options.groupField"
               :options="groupFields"
               :reduce="o => o.name"
-              :get-option-label="groupFieldLabel"
+              :get-option-label="getFieldLabel"
               :placeholder="$t('general.label.none')"
             />
 
@@ -271,7 +271,7 @@ export default {
     },
 
     groupFields () {
-      return this.selectedModuleFields.filter(({ isMulti }) => !isMulti)
+      return this.allFields.filter(({ isMulti }) => !isMulti)
     },
 
     group () {
@@ -332,20 +332,12 @@ export default {
   },
 
   methods: {
+    getFieldLabel (option) {
+      return `${option.label || option.name} (${option.kind})`
+    },
+
     setDefaultValues () {
       this.mock = []
-    },
-
-    fieldLabel (option) {
-      return `${option.label || option.name} (${option.kind})`
-    },
-
-    descriptionLabel (option) {
-      return `${option.label || option.name} (${option.kind})`
-    },
-
-    groupFieldLabel (option) {
-      return `${option.label || option.name}`
     },
   },
 }

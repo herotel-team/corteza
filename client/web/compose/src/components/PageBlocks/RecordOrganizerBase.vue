@@ -4,13 +4,29 @@
     v-on="$listeners"
     @refreshBlock="refresh"
   >
+    <template
+      v-if="canAddRecord"
+      #toolbar
+    >
+      <div class="p-3 border-bottom">
+        <b-button
+          variant="primary"
+          size="lg"
+          @click.prevent="createNewRecord"
+        >
+          {{ $t('recordOrganizer.addNewRecord') }}
+        </b-button>
+      </div>
+    </template>
+
     <template #default>
-      <div
+      <label
         v-if="!isConfigured"
-        class="d-flex align-items-center justify-content-center h-100 p-3"
+        class="text-primary p-3"
       >
         {{ $t('recordOrganizer.notConfigured') }}
-      </div>
+      </label>
+
       <div
         v-else
         class="h-100"
@@ -30,7 +46,7 @@
             #header
           >
             <div
-              class="small p-3 text-secondary"
+              class="small text-secondary"
             >
               {{ $t('recordOrganizer.noRecords') }}
             </div>
@@ -40,7 +56,7 @@
             v-for="record in records"
             :key="`${record.recordID}`"
             body-class="rounded p-3"
-            class="record-item border border-light mb-3 grab"
+            class="record-item border border-light mb-3 grab shadow-sm"
             @click="handleRecordClick(record)"
           >
             <h6
@@ -86,22 +102,6 @@
         >
           <b-spinner />
         </div>
-      </div>
-    </template>
-    <template
-      v-if="canAddRecord"
-      #footer
-    >
-      <div
-        class="p-2"
-      >
-        <b-button
-          variant="outline-light"
-          class="d-flex align-items-center justify-content-center text-primary border-0"
-          @click.prevent="createNewRecord"
-        >
-          {{ $t('recordOrganizer.addNewRecord') }}
-        </b-button>
       </div>
     </template>
   </wrap>
@@ -172,6 +172,19 @@ export default {
       return this.options.moduleID
     },
 
+    allFields () {
+      if (this.options.moduleID) {
+        return [
+          ...this.roModule.fields,
+          ...this.roModule.systemFields().map(sf => {
+            sf.label = this.$t(`field:system.${sf.name}`)
+            return sf
+          }),
+        ]
+      }
+      return []
+    },
+
     labelField () {
       const { labelField } = this.options
 
@@ -179,7 +192,7 @@ export default {
         return undefined
       }
 
-      return this.roModule.fields.find(f => f.name === labelField) || {}
+      return this.allFields.find(f => f.name === labelField) || {}
     },
 
     descriptionField () {
@@ -189,7 +202,7 @@ export default {
         return undefined
       }
 
-      return this.roModule.fields.find(f => f.name === descriptionField) || {}
+      return this.allFields.find(f => f.name === descriptionField) || {}
     },
 
     positionField () {
@@ -199,7 +212,7 @@ export default {
         return undefined
       }
 
-      return this.roModule.fields.find(f => f.name === positionField) || {}
+      return this.allFields.find(f => f.name === positionField) || {}
     },
 
     groupField () {
@@ -209,7 +222,7 @@ export default {
         return undefined
       }
 
-      return this.roModule.fields.find(f => f.name === groupField) || {}
+      return this.allFields.find(f => f.name === groupField) || {}
     },
 
     canPull () {
@@ -554,6 +567,6 @@ export default {
 }
 
 .record-item:hover {
-  box-shadow: 0 0.125rem 0.25rem rgb(0 0 0 / 8%) !important;
+  background-color: var(--light) !important;
 }
 </style>
