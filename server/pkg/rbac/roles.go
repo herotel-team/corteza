@@ -115,6 +115,24 @@ func statRoles(rr ...*Role) (stats map[roleKind]int) {
 	return
 }
 
+func removedRoles(current []*Role, new ...*Role) (out []*Role) {
+	nx := map[uint64]bool{}
+
+	for _, n := range new {
+		nx[n.id] = true
+	}
+
+	for _, c := range current {
+		if nx[c.id] {
+			continue
+		}
+
+		out = append(out, c)
+	}
+
+	return
+}
+
 // compare list of session roles (ids) with preloaded roles and calculate the final list
 func evalRoles(s Session, res Resource, preloadedRoles ...*Role) (out partRoles) {
 	var (

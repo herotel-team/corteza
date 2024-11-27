@@ -24,6 +24,10 @@ type (
 		// incChan sends instructions to the counter re. key K increment
 		incChan chan K
 
+		rmChan chan uint64
+
+		checkKeyInclusion func(k K, role uint64) bool
+
 		// decayInterval denotes in what interval the decay factor should apply
 		decayInterval time.Duration
 		// cleanupInterval denotes in what interval counter evicts stuff
@@ -80,6 +84,19 @@ func (svc *usageCounter[K]) evict() (out []K) {
 	}
 
 	return out
+}
+
+func (svc *usageCounter[K]) cleanRoleKeys(role uint64) {
+	svc.lock.Lock()
+	defer svc.lock.Unlock()
+
+	for k := range svc.index {
+		if !svc.checkKeyInclusion(k, role) {
+			continue
+		}
+
+		delete(svc.index, k)
+	}
 }
 
 // decay applies the specified decay factor to the cache items
@@ -194,6 +211,9 @@ func (svc *usageCounter[K]) watch(ctx context.Context) {
 
 			case key := <-svc.incChan:
 				svc.inc(key)
+
+			case role := <-svc.rmChan:
+				svc.cleanRoleKeys(role)
 			}
 		}
 	}()
