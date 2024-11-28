@@ -130,7 +130,7 @@ func (svc *usageCounter[K]) bestPerformers(n int) (out []K) {
 	for i := len(hh) - 1; i >= 0; i-- {
 		out = append(out, hh[i].key)
 
-		if len(out) >= n {
+		if n > 0 && len(out) >= n {
 			return
 		}
 	}
