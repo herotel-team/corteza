@@ -59,6 +59,7 @@ type (
 		DecayFactor        float64       `env:"RBAC_DECAY_FACTOR"`
 		DecayInterval      time.Duration `env:"RBAC_DECAY_INTERVAL"`
 		CleanupInterval    time.Duration `env:"RBAC_CLEANUP_INTERVAL"`
+		ReindexInterval    time.Duration `env:"RBAC_REINDEX_INTERVAL"`
 		IndexFlushInterval time.Duration `env:"RBAC_INDEX_FLUSH_INTERVAL"`
 		ServiceUser        string        `env:"RBAC_SERVICE_USER"`
 		BypassRoles        string        `env:"RBAC_BYPASS_ROLES"`
@@ -391,6 +392,7 @@ func Rbac() (o *RbacOpt) {
 		DecayFactor:        0.9,
 		DecayInterval:      time.Minute * 30,
 		CleanupInterval:    time.Minute * 31,
+		ReindexInterval:    time.Minute * 10,
 		IndexFlushInterval: time.Minute * 35,
 		BypassRoles:        "super-admin",
 		AuthenticatedRoles: "authenticated",

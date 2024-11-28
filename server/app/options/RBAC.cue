@@ -71,6 +71,14 @@ RBAC: schema.#optionsGroup & {
 				"""
 		}
 
+		reindex_interval: {
+			type:          "time.Duration"
+			defaultGoExpr: "time.Minute * 10"
+			description: """
+				Reindex interval controls when the index should be re-calculated.
+				"""
+		}
+
 		index_flush_interval: {
 			type:          "time.Duration"
 			defaultGoExpr: "time.Minute * 35"
