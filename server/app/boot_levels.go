@@ -357,6 +357,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 			DecayInterval:      app.Opt.RBAC.DecayInterval,
 			CleanupInterval:    app.Opt.RBAC.CleanupInterval,
 			IndexFlushInterval: app.Opt.RBAC.IndexFlushInterval,
+			ReindexInterval:    app.Opt.RBAC.ReindexInterval,
 			RuleStorage:        app.Store,
 			RoleStorage:        app.Store,
 

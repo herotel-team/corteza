@@ -56,6 +56,8 @@ type (
 		DecayInterval time.Duration
 		// CleanupInterval states how often stale or poor performers should be thrown out
 		CleanupInterval time.Duration
+		// ReindexInterval states how often we should reindex based on updated scores
+		ReindexInterval time.Duration
 		// IndexFlushInterval states how often the index state should be flushed to the database
 		IndexFlushInterval time.Duration
 
@@ -1157,34 +1159,45 @@ func (svc *Service) DebuggerAddIndex(role uint64, resource string, rules ...*Rul
 // Processing n stuff
 
 func (svc *Service) watch(ctx context.Context) {
+	tck := time.NewTicker(time.Minute * 5)
+
 	tInt := svc.cfg.IndexFlushInterval
 	if tInt == 0 {
 		tInt = time.Minute * 5
 	}
+	tTck := time.NewTicker(tInt)
+	_ = tTck
 
-	t := time.NewTicker(time.Minute * 5)
-	rexInt := svc.cfg.IndexFlushInterval
+	flushInt := svc.cfg.IndexFlushInterval
+	if flushInt == 0 {
+		flushInt = time.Minute * 30
+	}
+	flushTck := time.NewTicker(flushInt)
+	_ = flushTck
+
+	rexInt := svc.cfg.ReindexInterval
 	if rexInt == 0 {
 		rexInt = time.Minute * 30
 	}
+	rexTck := time.NewTicker(rexInt)
+	_ = rexTck
 
-	rex := time.NewTicker(time.Minute * 30)
-
-	flshInt := svc.cfg.IndexFlushInterval
-	if flshInt == 0 {
-		flshInt = time.Minute * 5
-	}
-	tFlush := time.NewTicker(flshInt)
+	defer func() {
+		tck.Stop()
+		tTck.Stop()
+		flushTck.Stop()
+		rexTck.Stop()
+	}()
 
 	lg := svc.logger.Named("rbac service wrapper")
 
 	go func() {
 		for {
 			select {
-			case <-t.C:
+			case <-tck.C:
 				lg.Info("tick")
 
-			case <-rex.C:
+			case <-rexTck.C:
 				lg.Info("reindex")
 
 				err := svc.updateWrapperIndex(ctx)
@@ -1192,7 +1205,7 @@ func (svc *Service) watch(ctx context.Context) {
 					lg.Error("reindex failed", zap.Error(err))
 				}
 
-			case <-tFlush.C:
+			case <-flushTck.C:
 				err := svc.cfg.FlushIndexState(ctx, svc.index.getIndexed())
 				if err != nil {
 					lg.Error("failed to flush the index state", zap.Error(err))
