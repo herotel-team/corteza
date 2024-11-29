@@ -34,6 +34,7 @@ func buildRuleIndex(rules []*Rule) (index *ruleIndex) {
 	return index
 }
 
+// add adds a new Rule to the index
 func (index *ruleIndex) add(rules ...*Rule) {
 	if index.children == nil {
 		index.children = make(map[uint64]*ruleIndexNode, len(rules)/2)
@@ -71,62 +72,12 @@ func (index *ruleIndex) add(rules ...*Rule) {
 	}
 }
 
-func (index *ruleIndex) remove(role uint64, resource string, ops ...string) {
-	if _, ok := index.children[role]; !ok {
-		return
-	}
-
-	auxOps := ops
-
-	if len(auxOps) == 0 {
-		for op := range index.children[role].children {
-			auxOps = append(auxOps, op)
-		}
-	}
-
-	for _, op := range auxOps {
-		bits := append([]string{op}, strings.Split(resource, "/")...)
-		index.removeRec(index.children[role], bits)
-
-		// Finishing touch cleanup
-		if len(index.children[role].children[op].children) == 0 {
-			delete(index.children[role].children, op)
-		}
-		if len(index.children[role].children) == 0 {
-			delete(index.children, role)
-		}
-	}
-}
-
-func (index *ruleIndex) removeRec(n *ruleIndexNode, bits []string) {
-	// Recursive in; decrement counters
-	n.count--
-
-	if len(bits) == 0 {
-		return
-	}
-
-	n = n.children[bits[0]]
-	index.removeRec(n, bits[1:])
-
-	// Recursive out; yoink out obsolete štuff
-	if len(bits) == 1 {
-		if len(n.children) > 0 {
-			n.children[bits[0]].isLeaf = false
-			n.children[bits[0]].rule = nil
-		}
-		return
-	}
-
-	if n.children[bits[1]].count == 0 {
-		delete(n.children, bits[1])
-	}
-}
-
+// has checks if the rule is already in there
 func (t *ruleIndex) has(r *Rule) bool {
 	return len(t.collect(true, r.RoleID, r.Operation, r.Resource)) > 0
 }
 
+// get returns the matching rules
 func (t *ruleIndex) get(role uint64, op, res string) (out []*Rule) {
 	return t.collect(false, role, op, res)
 }
