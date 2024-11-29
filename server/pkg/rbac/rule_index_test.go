@@ -9,11 +9,10 @@ import (
 
 func TestIndexBuild(t *testing.T) {
 	tcc := []struct {
-		name   string
-		in     []*Rule
-		remove []*Rule
-		add    []*Rule
-		out    []int
+		name string
+		in   []*Rule
+		add  []*Rule
+		out  []int
 
 		role uint64
 		op   string
@@ -120,126 +119,6 @@ func TestIndexBuild(t *testing.T) {
 			role: 1,
 			op:   "read",
 			res:  "a:b/c/d",
-		}, {
-			name: "removing the only element",
-			in: []*Rule{{
-				RoleID:    1,
-				Resource:  "a:b/c/d",
-				Operation: "write",
-				Access:    Allow,
-			}},
-			remove: []*Rule{{
-				RoleID:    1,
-				Resource:  "a:b/c/d",
-				Operation: "write",
-				Access:    Allow,
-			}},
-			out: nil,
-
-			role: 1,
-			op:   "write",
-			res:  "a:b/c/d",
-		},
-		{
-			name: "removing twice added thing",
-			in: []*Rule{{
-				RoleID:    1,
-				Resource:  "a:b/c/d",
-				Operation: "write",
-				Access:    Allow,
-			}, {
-				RoleID:    1,
-				Resource:  "a:b/c/d",
-				Operation: "write",
-				Access:    Allow,
-			}},
-			remove: []*Rule{{
-				RoleID:    1,
-				Resource:  "a:b/c/d",
-				Operation: "write",
-				Access:    Allow,
-			}},
-
-			out: nil,
-
-			role: 1,
-			op:   "write",
-			res:  "a:b/c/d",
-		},
-		{
-			name: "two elements with no common root",
-			in: []*Rule{{
-				RoleID:    1,
-				Resource:  "a:b/c/d",
-				Operation: "write",
-				Access:    Allow,
-			}, {
-				RoleID:    2,
-				Resource:  "a:b/c/d",
-				Operation: "write",
-				Access:    Allow,
-			}},
-			remove: []*Rule{{
-				RoleID:    1,
-				Resource:  "a:b/c/d",
-				Operation: "write",
-				Access:    Allow,
-			}},
-			out: nil,
-
-			role: 1,
-			op:   "write",
-			res:  "a:b/c/d",
-		},
-		{
-			name: "two elements with common root (get removed)",
-			in: []*Rule{{
-				RoleID:    1,
-				Resource:  "a:b/c/d",
-				Operation: "write",
-				Access:    Allow,
-			}, {
-				RoleID:    1,
-				Resource:  "a:b/c/e",
-				Operation: "write",
-				Access:    Allow,
-			}},
-			remove: []*Rule{{
-				RoleID:    1,
-				Resource:  "a:b/c/d",
-				Operation: "write",
-				Access:    Allow,
-			}},
-			out: nil,
-
-			role: 1,
-			op:   "write",
-			res:  "a:b/c/d",
-		},
-		{
-			name: "two elements with common root (get not removed)",
-			in: []*Rule{{
-				RoleID:    1,
-				Resource:  "a:b/c/d",
-				Operation: "write",
-				Access:    Allow,
-			}, {
-				RoleID:    1,
-				Resource:  "a:b/c/e",
-				Operation: "write",
-				Access:    Allow,
-			}},
-			remove: []*Rule{{
-				RoleID:    1,
-				Resource:  "a:b/c/d",
-				Operation: "write",
-				Access:    Allow,
-			}},
-			out: []int{1},
-
-			role: 1,
-			op:   "write",
-			res:  "a:b/c/e",
 		},
 		{
 			name: "add new element",
@@ -266,13 +145,12 @@ func TestIndexBuild(t *testing.T) {
 	for _, tc := range tcc {
 		t.Run(tc.name, func(t *testing.T) {
 			ix := buildRuleIndex(tc.in)
-			ix.remove(tc.remove...)
 			ix.add(tc.add...)
 
 			out := RuleSet(ix.get(tc.role, tc.op, tc.res))
 			sort.Sort(out)
 
-			want := RuleSet(graby(append(tc.in, tc.add...), tc.out))
+			want := RuleSet(grabIndexMatches(append(tc.in, tc.add...), tc.out))
 			sort.Sort(want)
 
 			require.Len(t, out, len(want))
@@ -281,10 +159,32 @@ func TestIndexBuild(t *testing.T) {
 			}
 		})
 	}
-
 }
 
-func graby(rr []*Rule, want []int) (out []*Rule) {
+func TestIndexHas(t *testing.T) {
+	ix := buildRuleIndex([]*Rule{{
+		RoleID:    1,
+		Resource:  "a:b/c/x",
+		Operation: "write",
+		Access:    Allow,
+	}})
+
+	require.True(t, ix.has(&Rule{
+		RoleID:    1,
+		Resource:  "a:b/c/x",
+		Operation: "write",
+		Access:    Allow,
+	}))
+
+	require.False(t, ix.has(&Rule{
+		RoleID:    2,
+		Resource:  "a:b/c/x",
+		Operation: "write",
+		Access:    Allow,
+	}))
+}
+
+func grabIndexMatches(rr []*Rule, want []int) (out []*Rule) {
 	out = make([]*Rule, 0, len(want))
 
 	for _, w := range want {
@@ -294,14 +194,14 @@ func graby(rr []*Rule, want []int) (out []*Rule) {
 	return
 }
 
-// goos: linux
-// goarch: amd64
+// goos: darwin
+// goarch: arm64
 // pkg: github.com/cortezaproject/corteza/server/pkg/rbac
-// cpu: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
-// BenchmarkIndexBuild_100-12                 10000            102361 ns/op           88064 B/op       1271 allocs/op
-// BenchmarkIndexBuild_1000-12                 1149           1024872 ns/op          755375 B/op      11183 allocs/op
-// BenchmarkIndexBuild_10000-12                 128           8986248 ns/op         4406477 B/op      82453 allocs/op
-// BenchmarkIndexBuild_100000-12                 14          81871407 ns/op        20627785 B/op     543568 allocs/op
+// cpu: Apple M3 Pro
+// BenchmarkIndexBuild_100-12                 26077             43467 ns/op           94785 B/op       1119 allocs/op
+// BenchmarkIndexBuild_1000-12                 2316            505664 ns/op          939447 B/op      10219 allocs/op
+// BenchmarkIndexBuild_10000-12                 228           5301265 ns/op         9008425 B/op      98033 allocs/op
+// BenchmarkIndexBuild_100000-12                 19          68454059 ns/op        70832448 B/op     843270 allocs/op
 func benchmarkIndexBuild(b *testing.B, rules []*Rule) {
 	b.ResetTimer()
 
