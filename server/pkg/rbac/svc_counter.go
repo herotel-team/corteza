@@ -24,8 +24,10 @@ type (
 		// incChan sends instructions to the counter re. key K increment
 		incChan chan K
 
+		// rmChan sends instructions to the counter re. key K removal
 		rmChan chan uint64
 
+		// checkKeyInclusion helps determine if an indexed thing should matches something
 		checkKeyInclusion func(k K, role uint64) bool
 
 		// decayInterval denotes in what interval the decay factor should apply
@@ -128,37 +130,12 @@ func (svc *usageCounter[K]) bestPerformers(n int) (out []K) {
 	sort.Sort(hh)
 
 	for i := len(hh) - 1; i >= 0; i-- {
+		if n >= 0 && len(out) >= n {
+			return
+		}
+
 		out = append(out, hh[i].key)
-
-		if n > 0 && len(out) >= n {
-			return
-		}
 	}
-	return
-}
-
-// worstPerformers returns the bottom n items based on their score
-func (svc *usageCounter[K]) worstPerformers(n int) (out []K) {
-	svc.lock.RLock()
-	defer svc.lock.RUnlock()
-
-	// Code to get n elements with the smallest count
-
-	hh := make(MinHeap[K], 0, len(svc.index))
-	for k, v := range svc.index {
-		hh = append(hh, counterItem[K]{key: k, score: v.score})
-	}
-
-	sort.Sort(hh)
-
-	for _, x := range hh {
-		out = append(out, x.key)
-
-		if len(out) >= n {
-			return
-		}
-	}
-
 	return
 }
 
