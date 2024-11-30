@@ -99,6 +99,10 @@ func (t *ruleIndex) collect(exact bool, role uint64, op, res string) (out []*Rul
 
 	// An edge case implied by the test suite
 	if op == "" && res == "" {
+		if t.children[role].children[""] == nil || t.children[role].children[""].children[""] == nil {
+			return
+		}
+
 		out = append(out, t.children[role].children[""].children[""].rule)
 		return
 	}
