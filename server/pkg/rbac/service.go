@@ -178,9 +178,28 @@ func NoopSvc(access Access) (svc *Service) {
 
 // NewService initializes the wrapper service with all the required surrounding bits
 func NewService(ctx context.Context, l *zap.Logger, store rbacRulesStore, cc Config) (svc *Service, err error) {
-	cc = defaultWrapperConfig(l, cc)
+	cc = defaultWrapperConfig(cc)
 
-	usageCounter := &usageCounter[string]{
+	uc := initUsageCounter(ctx, cc)
+	sl := initStatsLogger(ctx, l)
+	svc = initSvc(ctx, l, cc, sl, uc)
+
+	// Init bits and pieces
+	svc.roles, err = svc.loadRoles(ctx)
+	if err != nil {
+		return
+	}
+
+	svc.index, err = svc.loadIndex(ctx)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func initUsageCounter(ctx context.Context, cc Config) (svc *usageCounter[string]) {
+	svc = &usageCounter[string]{
 		incChan: make(chan string, 1024),
 
 		decayFactor:     cc.DecayFactor,
@@ -192,42 +211,41 @@ func NewService(ctx context.Context, l *zap.Logger, store rbacRulesStore, cc Con
 		},
 	}
 
-	sl := &statsLogger{
+	svc.watch(ctx)
+	return
+}
+
+func initStatsLogger(ctx context.Context, l *zap.Logger) (svc *statsLogger) {
+	svc = &statsLogger{
 		log:           l.Named("rbac stats logger"),
 		cacheHitChan:  make(chan statsWrap, 1024),
 		cacheMissChan: make(chan statsWrap, 1024),
 		timingChan:    make(chan time.Duration, 1024),
 	}
 
+	svc.watch(ctx)
+	return
+}
+
+func initSvc(ctx context.Context, l *zap.Logger, cc Config, sl *statsLogger, uc *usageCounter[string]) (svc *Service) {
 	svc = &Service{
+		logger: l,
+
 		cfg:        cc,
 		StatLogger: sl,
-		logger:     l,
 
-		usageCounter: usageCounter,
+		usageCounter: uc,
 
 		RuleStorage: cc.RuleStorage,
 		RoleStorage: cc.RoleStorage,
 	}
 
-	svc.roles, err = svc.loadRoles(ctx)
-	if err != nil {
-		return
-	}
-
-	svc.index, err = svc.loadIndex(ctx, store, svc.roles)
-	if err != nil {
-		return
-	}
-
-	usageCounter.watch(ctx)
 	svc.watch(ctx)
-	sl.watch(ctx)
 
 	return
 }
 
-func defaultWrapperConfig(l *zap.Logger, base Config) (out Config) {
+func defaultWrapperConfig(base Config) (out Config) {
 	out = base
 
 	// -1 disables partitioning so everything is pulled in memory
@@ -830,8 +848,15 @@ func (svc *Service) getMatchingRule(st evaluationState, kind roleKind, role uint
 
 // segmentRoles determines what roles are indexed and unindexed
 func (svc *Service) segmentRoles(roles partRoles, resource string) (indexed, unindexed partRoles, err error) {
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
+
 	unindexed = partRoles{}
 	indexed = partRoles{}
+
+	if svc.index.index.empty() {
+		return indexed, roles, nil
+	}
 
 	unindexed[CommonRole] = make(map[uint64]bool)
 	indexed[CommonRole] = make(map[uint64]bool)
@@ -958,7 +983,7 @@ func (svc *Service) updateWrapperIndexMemFirst(ctx context.Context) (err error) 
 		return
 	}
 
-	svc.swapIndexes(ctx, auxIndex)
+	svc.swapIndexes(auxIndex)
 	return
 }
 
@@ -1000,7 +1025,7 @@ func (svc *Service) indexForResources(ctx context.Context, res ...string) (index
 	return
 }
 
-func (svc *Service) loadIndex(ctx context.Context, s rbacRulesStore, allRoles []*Role) (out *wrapperIndex, err error) {
+func (svc *Service) loadIndex(ctx context.Context) (out *wrapperIndex, err error) {
 	// How do we figure out what resources we have?
 	// do we just start from empty?
 
@@ -1029,7 +1054,7 @@ func (svc *Service) buildNewIndex(ctx context.Context) (index *wrapperIndex, err
 	return svc.indexForResources(ctx, res...)
 }
 
-func (svc *Service) swapIndexes(ctx context.Context, auxIndex *wrapperIndex) {
+func (svc *Service) swapIndexes(auxIndex *wrapperIndex) {
 	if auxIndex == nil {
 		return
 	}
