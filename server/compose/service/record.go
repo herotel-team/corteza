@@ -1,35 +1,36 @@
 package service
 
 import (
-    "context"
-    "encoding/json"
-    "fmt"
-    "regexp"
-    "sort"
-    "strconv"
-    "strings"
-    "time"
+	"context"
+	"encoding/json"
+	"fmt"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
 
-    "github.com/cortezaproject/corteza/server/pkg/envoyx"
-    "github.com/cortezaproject/corteza/server/pkg/filter"
-    "github.com/cortezaproject/corteza/server/pkg/revisions"
-    "github.com/spf13/cast"
+	"github.com/cortezaproject/corteza/server/pkg/envoyx"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/pkg/revisions"
+	"github.com/spf13/cast"
 
-    "github.com/cortezaproject/corteza/server/pkg/dal"
-    "github.com/cortezaproject/corteza/server/pkg/locale"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/locale"
 
-    "github.com/cortezaproject/corteza/server/compose/dalutils"
-    "github.com/cortezaproject/corteza/server/compose/service/event"
-    "github.com/cortezaproject/corteza/server/compose/service/values"
-    "github.com/cortezaproject/corteza/server/compose/types"
-    "github.com/cortezaproject/corteza/server/pkg/actionlog"
-    "github.com/cortezaproject/corteza/server/pkg/auth"
-    "github.com/cortezaproject/corteza/server/pkg/corredor"
-    "github.com/cortezaproject/corteza/server/pkg/envoy/resource"
-    "github.com/cortezaproject/corteza/server/pkg/errors"
-    "github.com/cortezaproject/corteza/server/pkg/eventbus"
-    "github.com/cortezaproject/corteza/server/store"
-    systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/cortezaproject/corteza/server/compose/dalutils"
+	"github.com/cortezaproject/corteza/server/compose/service/event"
+	"github.com/cortezaproject/corteza/server/compose/service/values"
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/corredor"
+	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/store"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
 )
 
 const (
@@ -44,6 +45,7 @@ type (
 
 		actionlog actionlog.Recorder
 
+		rbacSvc *rbac.Service
 		ac       recordAccessController
 		eventbus eventDispatcher
 

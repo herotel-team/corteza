@@ -19,7 +19,7 @@ type (
 		mux        sync.RWMutex
 		cfg        Config
 		logger     *zap.Logger
-		StatLogger *statsLogger
+		StatLogger *StatsLogger
 
 		noop       bool
 		noopAccess Access
@@ -198,6 +198,15 @@ func NewService(ctx context.Context, l *zap.Logger, store rbacRulesStore, cc Con
 	return
 }
 
+func NewServiceMust(ctx context.Context, l *zap.Logger, store rbacRulesStore, cc Config) (svc *Service) {
+	svc, err := NewService(ctx, l, store, cc)
+	if err != nil {
+		panic(fmt.Sprintf("NewServiceMust failed with: %v", err))
+	}
+
+	return
+}
+
 func initUsageCounter(ctx context.Context, cc Config) (svc *usageCounter[string]) {
 	svc = &usageCounter[string]{
 		incChan: make(chan string, 1024),
@@ -215,8 +224,8 @@ func initUsageCounter(ctx context.Context, cc Config) (svc *usageCounter[string]
 	return
 }
 
-func initStatsLogger(ctx context.Context, l *zap.Logger) (svc *statsLogger) {
-	svc = &statsLogger{
+func initStatsLogger(ctx context.Context, l *zap.Logger) (svc *StatsLogger) {
+	svc = &StatsLogger{
 		log:           l.Named("rbac stats logger"),
 		cacheHitChan:  make(chan statsWrap, 1024),
 		cacheMissChan: make(chan statsWrap, 1024),
@@ -227,7 +236,7 @@ func initStatsLogger(ctx context.Context, l *zap.Logger) (svc *statsLogger) {
 	return
 }
 
-func initSvc(ctx context.Context, l *zap.Logger, cc Config, sl *statsLogger, uc *usageCounter[string]) (svc *Service) {
+func initSvc(ctx context.Context, l *zap.Logger, cc Config, sl *StatsLogger, uc *usageCounter[string]) (svc *Service) {
 	svc = &Service{
 		logger: l,
 
@@ -411,6 +420,7 @@ func (svc *Service) Stats() (out Stats, err error) {
 
 	out.CacheHits,
 		out.CacheMisses,
+		out.CacheUpdates,
 		out.AvgTiming,
 		out.MinTiming,
 		out.MaxTiming,
@@ -421,14 +431,6 @@ func (svc *Service) Stats() (out Stats, err error) {
 	out.IndexSize = svc.index.getSize()
 
 	return
-}
-
-// AddRole adds an additional role after the service was initialized
-func (svc *Service) AddRole(r *Role) {
-	svc.mux.Lock()
-	defer svc.mux.Unlock()
-
-	svc.roles = append(svc.roles, r)
 }
 
 func (svc *Service) UpdateRoles(rr ...*Role) {
