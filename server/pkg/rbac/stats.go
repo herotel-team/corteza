@@ -3,6 +3,7 @@ package rbac
 import (
 	"context"
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 )
 
 type (
-	statsLogger struct {
+	StatsLogger struct {
 		lock sync.RWMutex
 		log  *zap.Logger
 
@@ -44,12 +45,13 @@ type (
 )
 
 // Stats returns the tracked stats
-func (l *statsLogger) Stats() (cacheHit uint, cacheMiss uint, avgTiming, minTiming, maxTiming time.Duration, lastHits []string, lastMisses []string, lastTimings []time.Duration) {
+func (l *StatsLogger) Stats() (cacheHit uint, cacheMiss uint, cacheUpdates uint, avgTiming, minTiming, maxTiming time.Duration, lastHits []string, lastMisses []string, lastTimings []time.Duration) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 
 	return l.cacheHits,
 		l.cacheMisses,
+		l.cacheUpdates,
 		l.avgTiming,
 		l.minTiming,
 		l.maxTiming,
@@ -59,7 +61,7 @@ func (l *statsLogger) Stats() (cacheHit uint, cacheMiss uint, avgTiming, minTimi
 }
 
 // Timing logs the giving duration
-func (l *statsLogger) Timing(timing time.Duration) {
+func (l *StatsLogger) Timing(timing time.Duration) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
@@ -96,7 +98,7 @@ func (l *statsLogger) Timing(timing time.Duration) {
 	}
 }
 
-func (l *statsLogger) CacheHit(roles []uint64, resource string, op string) {
+func (l *StatsLogger) CacheHit(roles []uint64, resource string, op string) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
@@ -109,7 +111,7 @@ func (l *statsLogger) CacheHit(roles []uint64, resource string, op string) {
 	l.lastHits.Add(l.strfEntry(roles, resource, op))
 }
 
-func (l *statsLogger) CacheMiss(roles []uint64, resource string, op string) {
+func (l *StatsLogger) CacheMiss(roles []uint64, resource string, op string) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
@@ -122,7 +124,7 @@ func (l *statsLogger) CacheMiss(roles []uint64, resource string, op string) {
 	l.lastMisses.Add(l.strfEntry(roles, resource, op))
 }
 
-func (l *statsLogger) CacheUpdate(in *Rule) {
+func (l *StatsLogger) CacheUpdate(in *Rule) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
@@ -134,11 +136,13 @@ func (l *statsLogger) CacheUpdate(in *Rule) {
 // // // // // // // // // // // // // // // // // // // // // // // // //
 // Utils
 
-func (l *statsLogger) strfEntry(roles []uint64, resource string, op string) string {
+func (l *StatsLogger) strfEntry(roles []uint64, resource string, op string) string {
+	sort.Slice(roles, func(i, j int) bool { return roles[i] < roles[j] })
+
 	return fmt.Sprintf("%v %s %s", roles, op, resource)
 }
 
-func (l *statsLogger) watch(ctx context.Context) {
+func (l *StatsLogger) watch(ctx context.Context) {
 	t := time.NewTicker(time.Minute * 5)
 
 	go func() {

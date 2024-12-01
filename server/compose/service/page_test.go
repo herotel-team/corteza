@@ -50,7 +50,7 @@ func TestPageDeleting(t *testing.T) {
 
 		svc = &page{
 			store:    s,
-			ac:       &accessControl{rbac: &rbac.ServiceAllowAll{}},
+			ac:       &accessControl{rbac: rbac.NoopSvc(rbac.Allow)},
 			eventbus: eventbus.New(),
 			locale:   ResourceTranslationsManager(locale.Static()),
 		}
