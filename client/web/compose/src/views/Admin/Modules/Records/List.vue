@@ -1,6 +1,6 @@
 <template>
   <div
-    class="h-100 px-2"
+    class="h-100 p-2"
   >
     <portal to="topbar-title">
       {{ title }}
