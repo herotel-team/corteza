@@ -236,7 +236,7 @@ export default {
 
       if (this.roleID) {
         this.$SystemAPI.roleUpdate(role)
-          .then(role => {
+          .then(() => {
             this.fetchRole()
 
             this.animateSuccess('info')
