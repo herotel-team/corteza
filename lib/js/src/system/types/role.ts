@@ -98,7 +98,7 @@ export class Role {
   }
 
   get isContext (): boolean {
-    return this.meta?.context?.expr?.length > 0
+    return this.meta?.context?.expr?.length > 0 || this.meta?.context?.resourceTypes?.length > 0
   }
 
   clone (): Role {

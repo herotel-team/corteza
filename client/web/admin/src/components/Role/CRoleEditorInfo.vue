@@ -229,6 +229,9 @@ export default {
       },
 
       set (isContext) {
+        this.role.meta.context.resourceTypes = []
+        this.role.meta.context.expr = ''
+
         this.$emit('update:is-context', isContext)
       },
     },
