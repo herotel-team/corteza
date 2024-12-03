@@ -260,7 +260,10 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 		// @todo envoy should be decoupled from RBAC and import directly into store,
 		//       w/o using any access control
 
-		rbac.SetGlobal(rbac.NoopSvc(rbac.Allow))
+		rbac.SetGlobal(rbac.NoopSvc(rbac.Allow, rbac.Config{
+			RuleStorage: app.Store,
+			RoleStorage: app.Store,
+		}))
 		defer rbac.SetGlobal(nil)
 	}
 

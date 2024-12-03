@@ -88,6 +88,8 @@ func makeTestRecordService(t *testing.T, mods ...any) *record {
 			CleanupInterval:    time.Hour * 2,
 			ReindexInterval:    time.Hour * 2,
 			IndexFlushInterval: time.Hour * 2,
+			RuleStorage:        svc.store,
+			RoleStorage:        svc.store,
 		})
 		require.NoError(t, err)
 		svc.rbacSvc = rc
@@ -263,8 +265,8 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 		modConf = types.ModuleConfig{DAL: types.ModuleConfigDAL{ConnectionID: 1}}
 
 		mod         = &types.Module{ID: nextID(), NamespaceID: ns.ID, Config: modConf}
-		stringField = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, Name: "string", Kind: "String"}
-		boolField   = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, Name: "bool", Kind: "Boolean"}
+		stringField = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod.ID, Name: "string", Kind: "String"}
+		boolField   = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod.ID, Name: "bool", Kind: "Boolean"}
 
 		authRoleID uint64 = 1
 
@@ -916,6 +918,8 @@ func TestSetRecordOwner(t *testing.T) {
 			CleanupInterval:    time.Hour * 2,
 			ReindexInterval:    time.Hour * 2,
 			IndexFlushInterval: time.Hour * 2,
+			RuleStorage:        s,
+			RoleStorage:        s,
 		})
 		ac = &accessControl{rbac: rbacService}
 
