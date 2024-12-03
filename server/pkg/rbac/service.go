@@ -102,22 +102,22 @@ type (
 	}
 
 	Stats struct {
-		CacheHits      uint          `json:"cacheHits"`
-		CacheMisses    uint          `json:"cacheMisses"`
-		CacheUpdates   uint          `json:"cacheUpdates"`
-		AvgDbTiming    time.Duration `json:"avgDbTiming"`
-		MinDbTiming    time.Duration `json:"minDbTiming"`
-		MaxDbTiming    time.Duration `json:"maxDbTiming"`
-		AvgIndexTiming time.Duration `json:"avgIndexTiming"`
-		MinIndexTiming time.Duration `json:"minIndexTiming"`
-		MaxIndexTiming time.Duration `json:"maxIndexTiming"`
+		CacheHits         uint          `json:"cacheHits"`
+		CacheMisses       uint          `json:"cacheMisses"`
+		CacheUpdates      uint          `json:"cacheUpdates"`
+		AvgDatabaseTiming time.Duration `json:"avgDatabaseTiming"`
+		MinDatabaseTiming time.Duration `json:"minDatabaseTiming"`
+		MaxDatabaseTiming time.Duration `json:"maxDatabaseTiming"`
+		AvgIndexTiming    time.Duration `json:"avgIndexTiming"`
+		MinIndexTiming    time.Duration `json:"minIndexTiming"`
+		MaxIndexTiming    time.Duration `json:"maxIndexTiming"`
 
 		IndexSize int `json:"indexSize"`
 
-		LastHits         []string        `json:"lastHits"`
-		LastMisses       []string        `json:"lastMisses"`
-		LastDbTimings    []time.Duration `json:"lastDbTimings"`
-		LastIndexTimings []time.Duration `json:"lastIndexTimings"`
+		LastHits            []string        `json:"lastHits"`
+		LastMisses          []string        `json:"lastMisses"`
+		LastDatabaseTimings []time.Duration `json:"lastDatabaseTimings"`
+		LastIndexTimings    []time.Duration `json:"lastIndexTimings"`
 
 		Counters []expCtrItem `json:"counters"`
 	}
@@ -432,15 +432,15 @@ func (svc *Service) Stats() (out Stats, err error) {
 	out.CacheHits,
 		out.CacheMisses,
 		out.CacheUpdates,
-		out.AvgDbTiming,
-		out.MinDbTiming,
-		out.MaxDbTiming,
+		out.AvgDatabaseTiming,
+		out.MinDatabaseTiming,
+		out.MaxDatabaseTiming,
 		out.AvgIndexTiming,
 		out.MinIndexTiming,
 		out.MaxIndexTiming,
 		out.LastHits,
 		out.LastMisses,
-		out.LastDbTimings,
+		out.LastDatabaseTimings,
 		out.LastIndexTimings = svc.StatLogger.Stats()
 
 	out.IndexSize = svc.index.getSize()
