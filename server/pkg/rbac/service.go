@@ -169,10 +169,16 @@ func SetGlobal(svc *Service) {
 }
 
 // NoopSvc creates a blank RBAC service which always returns the stated access
-func NoopSvc(access Access) (svc *Service) {
+func NoopSvc(access Access, cc Config) (svc *Service) {
 	return &Service{
 		noop:       true,
 		noopAccess: access,
+		logger:     zap.NewNop(),
+
+		RuleStorage: cc.RuleStorage,
+		RoleStorage: cc.RoleStorage,
+
+		cfg: cc,
 	}
 }
 
@@ -856,7 +862,7 @@ func (svc *Service) segmentRoles(roles partRoles, resource string) (indexed, uni
 	unindexed = partRoles{}
 	indexed = partRoles{}
 
-	if svc.index.index.empty() {
+	if svc.index == nil || svc.index.index == nil || svc.index.index.empty() {
 		return indexed, roles, nil
 	}
 
@@ -949,9 +955,11 @@ func (svc *Service) incCounterSync(roles partRoles, res Resource) {
 }
 
 func (svc *Service) incCounterAsync(roles partRoles, res Resource) {
-	for _, rr := range roles {
-		for r := range rr {
-			svc.usageCounter.incChan <- fmt.Sprintf("%d:%s", r, res.RbacResource())
+	if svc.usageCounter != nil && svc.usageCounter.incChan != nil {
+		for _, rr := range roles {
+			for r := range rr {
+				svc.usageCounter.incChan <- fmt.Sprintf("%d:%s", r, res.RbacResource())
+			}
 		}
 	}
 }
@@ -963,8 +971,10 @@ func (svc *Service) cleanupCounterSync(roles ...*Role) {
 }
 
 func (svc *Service) cleanupCounterAsync(roles ...*Role) {
-	for _, r := range roles {
-		svc.usageCounter.rmChan <- r.id
+	if svc.usageCounter != nil && svc.usageCounter.rmChan != nil {
+		for _, r := range roles {
+			svc.usageCounter.rmChan <- r.id
+		}
 	}
 }
 
@@ -1081,7 +1091,9 @@ func (svc *Service) logAccessSync(timing time.Duration) {
 }
 
 func (svc *Service) logAccessAsync(timing time.Duration) {
-	svc.StatLogger.timingChan <- timing
+	if svc.StatLogger != nil && svc.StatLogger.timingChan != nil {
+		svc.StatLogger.timingChan <- timing
+	}
 }
 
 func (svc *Service) logCachePerformance(hits, misses partRoles, resource, op string) {
@@ -1124,7 +1136,7 @@ func (svc *Service) logCachePerformanceSync(hits, misses partRoles, resource, op
 
 func (svc *Service) logCachePerformanceAsync(hits, misses partRoles, resource, op string) {
 	// Hits
-	{
+	if svc.StatLogger != nil && svc.StatLogger.cacheHitChan != nil {
 		rls := make([]uint64, 0, 4)
 
 		for _, rr := range hits {
@@ -1142,7 +1154,7 @@ func (svc *Service) logCachePerformanceAsync(hits, misses partRoles, resource, o
 	}
 
 	// Misses
-	{
+	if svc.StatLogger != nil && svc.StatLogger.cacheMissChan != nil {
 		rls := make([]uint64, 0, 4)
 
 		for _, rr := range misses {

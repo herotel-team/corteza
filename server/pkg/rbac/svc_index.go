@@ -30,6 +30,10 @@ func (svc *wrapperIndex) add(role uint64, resource string, rules ...*Rule) {
 }
 
 func (svc *wrapperIndex) get(role uint64, op string, res string) (out []*Rule) {
+	if svc == nil {
+		return
+	}
+
 	svc.mux.RLock()
 	defer svc.mux.RUnlock()
 

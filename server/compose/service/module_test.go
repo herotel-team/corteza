@@ -83,6 +83,8 @@ func makeTestModuleService(t *testing.T, mods ...any) *module {
 			CleanupInterval:    time.Hour * 2,
 			ReindexInterval:    time.Hour * 2,
 			IndexFlushInterval: time.Hour * 2,
+			RuleStorage:        svc.store,
+			RoleStorage:        svc.store,
 		})
 		require.NoError(t, err)
 		svc.ac = &accessControl{rbac: rc}
@@ -129,7 +131,7 @@ func TestModules(t *testing.T) {
 
 		svc := makeTestModuleService(t,
 			ns,
-			rbac.NoopSvc(rbac.Allow),
+			rbac.NoopSvc(rbac.Allow, rbac.Config{}),
 		)
 
 		res, err := svc.Create(ctx, &types.Module{Name: "My first module", NamespaceID: ns.ID})
@@ -174,7 +176,7 @@ func TestModule_LabelSearch(t *testing.T) {
 		req = require.New(t)
 		svc = makeTestModuleService(t,
 			ns,
-			rbac.NoopSvc(rbac.Allow),
+			rbac.NoopSvc(rbac.Allow, rbac.Config{}),
 		)
 
 		ctx = context.Background()
@@ -246,7 +248,7 @@ func TestModule_LabelCRUD(t *testing.T) {
 		req = require.New(t)
 		svc = makeTestModuleService(t,
 			ns,
-			rbac.NoopSvc(rbac.Allow),
+			rbac.NoopSvc(rbac.Allow, rbac.Config{}),
 		)
 
 		findAndReturnLabel = func(id uint64) map[string]string {

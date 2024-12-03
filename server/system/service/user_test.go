@@ -55,6 +55,8 @@ func TestUser_ProtectedSearch(t *testing.T) {
 			CleanupInterval:    time.Hour * 2,
 			ReindexInterval:    time.Hour * 2,
 			IndexFlushInterval: time.Hour * 2,
+			RuleStorage:        s,
+			RoleStorage:        s,
 		})
 	)
 
