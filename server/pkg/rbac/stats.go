@@ -17,23 +17,28 @@ type (
 		log  *zap.Logger
 
 		// Channels for async comms
-		cacheHitChan  chan statsWrap
-		cacheMissChan chan statsWrap
-		timingChan    chan time.Duration
+		cacheHitChan       chan statsWrap
+		cacheMissChan      chan statsWrap
+		timingDatabaseChan chan time.Duration
+		timingIndexChan    chan time.Duration
 
 		// Counters
-		cacheHits    uint
-		cacheMisses  uint
-		cacheUpdates uint
-		avgTiming    time.Duration
-		minTiming    time.Duration
-		maxTiming    time.Duration
+		cacheHits         uint
+		cacheMisses       uint
+		cacheUpdates      uint
+		avgDatabaseTiming time.Duration
+		minDatabaseTiming time.Duration
+		maxDatabaseTiming time.Duration
+		avgIndexTiming    time.Duration
+		minIndexTiming    time.Duration
+		maxIndexTiming    time.Duration
 
 		// Track a limited set of things
 		// Using a circular buffer we can easily not consume too much data
-		lastHits    *slice.Circular[string]
-		lastMisses  *slice.Circular[string]
-		lastTimings *slice.Circular[time.Duration]
+		lastHits            *slice.Circular[string]
+		lastMisses          *slice.Circular[string]
+		lastDatabaseTimings *slice.Circular[time.Duration]
+		lastIndexTimings    *slice.Circular[time.Duration]
 	}
 
 	// statsWrap wraps the state to log
@@ -45,56 +50,108 @@ type (
 )
 
 // Stats returns the tracked stats
-func (l *StatsLogger) Stats() (cacheHit uint, cacheMiss uint, cacheUpdates uint, avgTiming, minTiming, maxTiming time.Duration, lastHits []string, lastMisses []string, lastTimings []time.Duration) {
+func (l *StatsLogger) Stats() (
+	cacheHit uint,
+	cacheMiss uint,
+	cacheUpdates uint,
+	avgDbTiming, minDbTiming, maxDbTiming time.Duration,
+	avgIndexTiming, minIndexTiming, maxIndexTiming time.Duration,
+	lastHits []string,
+	lastMisses []string,
+	lastDbTimings []time.Duration,
+	lastIndexTimings []time.Duration,
+) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 
 	return l.cacheHits,
 		l.cacheMisses,
 		l.cacheUpdates,
-		l.avgTiming,
-		l.minTiming,
-		l.maxTiming,
+		l.avgDatabaseTiming,
+		l.minDatabaseTiming,
+		l.maxDatabaseTiming,
+		l.avgIndexTiming,
+		l.minIndexTiming,
+		l.maxIndexTiming,
 		l.lastHits.Slice(),
 		l.lastMisses.Slice(),
-		l.lastTimings.Slice()
+		l.lastDatabaseTimings.Slice(),
+		l.lastIndexTimings.Slice()
 }
 
-// Timing logs the giving duration
-func (l *StatsLogger) Timing(timing time.Duration) {
+// TimingDatabase logs the giving duration
+func (l *StatsLogger) TimingDatabase(timing time.Duration) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
-	l.log.Info("record timing", zap.Duration("timing", timing))
+	l.log.Info("record database timing", zap.Duration("timing", timing))
 
 	{
-		l.avgTiming = (l.avgTiming + timing) / 2
+		l.avgDatabaseTiming = (l.avgDatabaseTiming + timing) / 2
 	}
 
 	{
-		if l.minTiming == 0 {
-			l.minTiming = timing
+		if l.minDatabaseTiming == 0 {
+			l.minDatabaseTiming = timing
 		}
-		if timing < l.minTiming {
-			l.minTiming = timing
-		}
-	}
-
-	{
-		if l.maxTiming == 0 {
-			l.maxTiming = timing
-		}
-		if timing > l.maxTiming {
-			l.maxTiming = timing
+		if timing < l.minDatabaseTiming {
+			l.minDatabaseTiming = timing
 		}
 	}
 
 	{
-		if l.lastTimings == nil {
-			l.lastTimings = slice.NewCircular[time.Duration](500)
+		if l.maxDatabaseTiming == 0 {
+			l.maxDatabaseTiming = timing
+		}
+		if timing > l.maxDatabaseTiming {
+			l.maxDatabaseTiming = timing
+		}
+	}
+
+	{
+		if l.lastDatabaseTimings == nil {
+			l.lastDatabaseTimings = slice.NewCircular[time.Duration](500)
 		}
 
-		l.lastTimings.Add(timing)
+		l.lastDatabaseTimings.Add(timing)
+	}
+}
+
+// TimingIndex logs the giving duration
+func (l *StatsLogger) TimingIndex(timing time.Duration) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
+	l.log.Info("record index timing", zap.Duration("timing", timing))
+
+	{
+		l.avgIndexTiming = (l.avgIndexTiming + timing) / 2
+	}
+
+	{
+		if l.minIndexTiming == 0 {
+			l.minIndexTiming = timing
+		}
+		if timing < l.minIndexTiming {
+			l.minIndexTiming = timing
+		}
+	}
+
+	{
+		if l.maxIndexTiming == 0 {
+			l.maxIndexTiming = timing
+		}
+		if timing > l.maxIndexTiming {
+			l.maxIndexTiming = timing
+		}
+	}
+
+	{
+		if l.lastIndexTimings == nil {
+			l.lastIndexTimings = slice.NewCircular[time.Duration](500)
+		}
+
+		l.lastIndexTimings.Add(timing)
 	}
 }
 
@@ -157,8 +214,11 @@ func (l *StatsLogger) watch(ctx context.Context) {
 			case rs := <-l.cacheHitChan:
 				l.CacheHit(rs.roles, rs.resource, rs.op)
 
-			case tt := <-l.timingChan:
-				l.Timing(tt)
+			case tt := <-l.timingDatabaseChan:
+				l.TimingDatabase(tt)
+
+			case tt := <-l.timingIndexChan:
+				l.TimingIndex(tt)
 
 			case <-ctx.Done():
 				l.log.Info("terminating watcher")

@@ -102,18 +102,22 @@ type (
 	}
 
 	Stats struct {
-		CacheHits    uint          `json:"cacheHits"`
-		CacheMisses  uint          `json:"cacheMisses"`
-		CacheUpdates uint          `json:"cacheUpdates"`
-		AvgTiming    time.Duration `json:"avgTiming"`
-		MinTiming    time.Duration `json:"minTiming"`
-		MaxTiming    time.Duration `json:"maxTiming"`
+		CacheHits      uint          `json:"cacheHits"`
+		CacheMisses    uint          `json:"cacheMisses"`
+		CacheUpdates   uint          `json:"cacheUpdates"`
+		AvgDbTiming    time.Duration `json:"avgDbTiming"`
+		MinDbTiming    time.Duration `json:"minDbTiming"`
+		MaxDbTiming    time.Duration `json:"maxDbTiming"`
+		AvgIndexTiming time.Duration `json:"avgIndexTiming"`
+		MinIndexTiming time.Duration `json:"minIndexTiming"`
+		MaxIndexTiming time.Duration `json:"maxIndexTiming"`
 
 		IndexSize int `json:"indexSize"`
 
-		LastHits    []string        `json:"lastHits"`
-		LastMisses  []string        `json:"lastMisses"`
-		LastTimings []time.Duration `json:"lastTimings"`
+		LastHits         []string        `json:"lastHits"`
+		LastMisses       []string        `json:"lastMisses"`
+		LastDbTimings    []time.Duration `json:"lastDbTimings"`
+		LastIndexTimings []time.Duration `json:"lastIndexTimings"`
 
 		Counters []expCtrItem `json:"counters"`
 	}
@@ -232,10 +236,11 @@ func initUsageCounter(ctx context.Context, cc Config) (svc *usageCounter[string]
 
 func initStatsLogger(ctx context.Context, l *zap.Logger) (svc *StatsLogger) {
 	svc = &StatsLogger{
-		log:           l.Named("rbac stats logger"),
-		cacheHitChan:  make(chan statsWrap, 1024),
-		cacheMissChan: make(chan statsWrap, 1024),
-		timingChan:    make(chan time.Duration, 1024),
+		log:                l.Named("rbac stats logger"),
+		cacheHitChan:       make(chan statsWrap, 1024),
+		cacheMissChan:      make(chan statsWrap, 1024),
+		timingDatabaseChan: make(chan time.Duration, 1024),
+		timingIndexChan:    make(chan time.Duration, 1024),
 	}
 
 	svc.watch(ctx)
@@ -427,12 +432,16 @@ func (svc *Service) Stats() (out Stats, err error) {
 	out.CacheHits,
 		out.CacheMisses,
 		out.CacheUpdates,
-		out.AvgTiming,
-		out.MinTiming,
-		out.MaxTiming,
+		out.AvgDbTiming,
+		out.MinDbTiming,
+		out.MaxDbTiming,
+		out.AvgIndexTiming,
+		out.MinIndexTiming,
+		out.MaxIndexTiming,
 		out.LastHits,
 		out.LastMisses,
-		out.LastTimings = svc.StatLogger.Stats()
+		out.LastDbTimings,
+		out.LastIndexTimings = svc.StatLogger.Stats()
 
 	out.IndexSize = svc.index.getSize()
 
@@ -576,7 +585,7 @@ func (svc *Service) check(ctx context.Context, rolesByKind partRoles, op, res st
 		return Inherit, err
 	}
 
-	svc.logDbTiming(timing)
+	svc.logDatabaseTiming(timing)
 
 	a, err = svc.evaluate(
 		[]roleKind{ContextRole, CommonRole, AuthenticatedRole, AnonymousRole},
@@ -833,7 +842,10 @@ func (svc *Service) getMatchingRule(st evaluationState, kind roleKind, role uint
 	)
 
 	// Indexed
+	now := time.Now()
 	aux = svc.index.get(role, st.op, st.res)
+	svc.logIndexTiming(time.Since(now))
+
 	rules = append(rules, aux...)
 
 	// Unindexed
@@ -1078,21 +1090,39 @@ func (svc *Service) swapIndexes(auxIndex *wrapperIndex) {
 }
 
 // Performance monitoring
-func (svc *Service) logDbTiming(timing time.Duration) {
+func (svc *Service) logDatabaseTiming(timing time.Duration) {
 	if svc.cfg.Synchronous {
-		svc.logAccessSync(timing)
+		svc.logDatabaseSync(timing)
 	} else {
-		svc.logAccessAsync(timing)
+		svc.logDatabaseAsync(timing)
 	}
 }
 
-func (svc *Service) logAccessSync(timing time.Duration) {
-	svc.StatLogger.Timing(timing)
+func (svc *Service) logDatabaseSync(timing time.Duration) {
+	svc.StatLogger.TimingDatabase(timing)
 }
 
-func (svc *Service) logAccessAsync(timing time.Duration) {
-	if svc.StatLogger != nil && svc.StatLogger.timingChan != nil {
-		svc.StatLogger.timingChan <- timing
+func (svc *Service) logDatabaseAsync(timing time.Duration) {
+	if svc.StatLogger != nil && svc.StatLogger.timingDatabaseChan != nil {
+		svc.StatLogger.timingDatabaseChan <- timing
+	}
+}
+
+func (svc *Service) logIndexTiming(timing time.Duration) {
+	if svc.cfg.Synchronous {
+		svc.logIndexSync(timing)
+	} else {
+		svc.logIndexAsync(timing)
+	}
+}
+
+func (svc *Service) logIndexSync(timing time.Duration) {
+	svc.StatLogger.TimingIndex(timing)
+}
+
+func (svc *Service) logIndexAsync(timing time.Duration) {
+	if svc.StatLogger != nil && svc.StatLogger.timingIndexChan != nil {
+		svc.StatLogger.timingIndexChan <- timing
 	}
 }
 
@@ -1200,37 +1230,26 @@ func (svc *Service) DebuggerAddIndex(role uint64, resource string, rules ...*Rul
 func (svc *Service) watch(ctx context.Context) {
 	tck := time.NewTicker(time.Minute * 5)
 
-	tInt := svc.cfg.IndexFlushInterval
-	if tInt == 0 {
-		tInt = time.Minute * 5
-	}
-	tTck := time.NewTicker(tInt)
-	_ = tTck
-
 	flushInt := svc.cfg.IndexFlushInterval
 	if flushInt == 0 {
 		flushInt = time.Minute * 30
 	}
 	flushTck := time.NewTicker(flushInt)
-	_ = flushTck
 
 	rexInt := svc.cfg.ReindexInterval
 	if rexInt == 0 {
 		rexInt = time.Minute * 30
 	}
 	rexTck := time.NewTicker(rexInt)
-	_ = rexTck
-
-	defer func() {
-		tck.Stop()
-		tTck.Stop()
-		flushTck.Stop()
-		rexTck.Stop()
-	}()
 
 	lg := svc.logger.Named("rbac service wrapper")
-
 	go func() {
+		defer func() {
+			tck.Stop()
+			flushTck.Stop()
+			rexTck.Stop()
+		}()
+
 		for {
 			select {
 			case <-tck.C:
