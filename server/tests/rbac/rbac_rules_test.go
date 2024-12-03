@@ -1,9 +1,11 @@
 package rbac
 
 import (
+	"context"
 	"testing"
 
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGrant(t *testing.T) {
@@ -53,7 +55,7 @@ func TestGrant(t *testing.T) {
 	})
 }
 
-func TestCheck(t *testing.T) {
+func TestCan(t *testing.T) {
 	t.Run("completely empty index", func(t *testing.T) {
 		ctx,
 			req,
@@ -147,5 +149,66 @@ func TestCheck(t *testing.T) {
 		}, "read", resWrap{resource: "smt/1/1/1"}))
 
 		checkHitRatios(req, mustStats(req, svc), 1, 0, [][]uint64{{1, 2}})
+	})
+}
+
+func TestCheck_noop(t *testing.T) {
+	t.Run("noop allow", func(t *testing.T) {
+		ctx := context.Background()
+		req := require.New(t)
+		svc := rbac.NoopSvc(rbac.Allow, rbac.Config{})
+
+		a, err := svc.Check(sesWrap{
+			identity: 1,
+			roles:    []uint64{1, 2, 3},
+			context:  ctx,
+		}, "read", resWrap{resource: "res/1/2/3"})
+		req.NoError(err)
+		req.Equal(rbac.Allow, a)
+	})
+
+	t.Run("noop deny", func(t *testing.T) {
+		ctx := context.Background()
+		req := require.New(t)
+		svc := rbac.NoopSvc(rbac.Deny, rbac.Config{})
+
+		a, err := svc.Check(sesWrap{
+			identity: 1,
+			roles:    []uint64{1, 2, 3},
+			context:  ctx,
+		}, "read", resWrap{resource: "res/1/2/3"})
+		req.NoError(err)
+		req.Equal(rbac.Deny, a)
+	})
+
+	t.Run("noop inherit", func(t *testing.T) {
+		ctx := context.Background()
+		req := require.New(t)
+		svc := rbac.NoopSvc(rbac.Inherit, rbac.Config{})
+
+		a, err := svc.Check(sesWrap{
+			identity: 1,
+			roles:    []uint64{1, 2, 3},
+			context:  ctx,
+		}, "read", resWrap{resource: "res/1/2/3"})
+		req.NoError(err)
+		req.Equal(rbac.Inherit, a)
+	})
+}
+
+func TestCheck_preventWildcards(t *testing.T) {
+	t.Run("prevent wildcard resources", func(t *testing.T) {
+		ctx,
+			req,
+			svc,
+			_ := initState(t, 0)
+
+		a, err := svc.Check(sesWrap{
+			identity: 1,
+			roles:    []uint64{1, 2, 3},
+			context:  ctx,
+		}, "read", resWrap{resource: "res/1/2/*"})
+		req.NoError(err)
+		req.Equal(rbac.Inherit, a)
 	})
 }
