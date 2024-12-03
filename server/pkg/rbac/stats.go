@@ -49,6 +49,10 @@ type (
 	}
 )
 
+const (
+	maxLastLogs = 500
+)
+
 // Stats returns the tracked stats
 func (l *StatsLogger) Stats() (
 	cacheHit uint,
@@ -110,7 +114,7 @@ func (l *StatsLogger) TimingDatabase(timing time.Duration) {
 
 	{
 		if l.lastDatabaseTimings == nil {
-			l.lastDatabaseTimings = slice.NewCircular[time.Duration](500)
+			l.lastDatabaseTimings = slice.NewCircular[time.Duration](maxLastLogs)
 		}
 
 		l.lastDatabaseTimings.Add(timing)
@@ -148,7 +152,7 @@ func (l *StatsLogger) TimingIndex(timing time.Duration) {
 
 	{
 		if l.lastIndexTimings == nil {
-			l.lastIndexTimings = slice.NewCircular[time.Duration](500)
+			l.lastIndexTimings = slice.NewCircular[time.Duration](maxLastLogs)
 		}
 
 		l.lastIndexTimings.Add(timing)
@@ -163,7 +167,7 @@ func (l *StatsLogger) CacheHit(roles []uint64, resource string, op string) {
 
 	l.cacheHits++
 	if l.lastHits == nil {
-		l.lastHits = slice.NewCircular[string](10000)
+		l.lastHits = slice.NewCircular[string](maxLastLogs)
 	}
 	l.lastHits.Add(l.strfEntry(roles, resource, op))
 }
@@ -176,7 +180,7 @@ func (l *StatsLogger) CacheMiss(roles []uint64, resource string, op string) {
 
 	l.cacheMisses++
 	if l.lastMisses == nil {
-		l.lastMisses = slice.NewCircular[string](10000)
+		l.lastMisses = slice.NewCircular[string](maxLastLogs)
 	}
 	l.lastMisses.Add(l.strfEntry(roles, resource, op))
 }
