@@ -10,6 +10,7 @@ export default {
 
     payload: {
       type: Object,
+      default: () => ({}),
     },
   },
 
@@ -33,8 +34,8 @@ export default {
         return this.payload[k]
       }
 
-      return { '@type': defType, '@value': defValue}
-    }
+      return { '@type': defType, '@value': defValue }
+    },
   },
 }
 </script>

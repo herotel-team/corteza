@@ -57,7 +57,7 @@ export const prompts = Object.freeze([
   },
   {
     ref: 'refetchRecords',
-    meta: { short: 'Refreshes all record values on the page' },
+    meta: { short: 'Refresh all record values on the page' },
   },
   {
     ref: 'notification',
@@ -123,7 +123,7 @@ export const prompts = Object.freeze([
     parameters: [
       { name: 'owner', types: ['User', 'ID'], required: false },
       { name: 'title', types: ['String'] },
-      { name: 'variant', types: ['String'], meta: { visual: { input: { type: 'select', properties: { options: variants } } } } },
+      { name: 'variant', types: ['String'], meta: { visual: { input: { type: 'select', properties: { options: variants }, default: 'primary' } } } },
       { name: 'message', types: ['String'], required: true },
       { name: 'label', types: ['String'] },
       {
@@ -131,15 +131,21 @@ export const prompts = Object.freeze([
         types: ['String'],
         meta: {
           visual: {
-            options: [
-              { value: 'text', text: 'Text' },
-              { value: 'number', text: 'Number' },
-              { value: 'email', text: 'Email' },
-              { value: 'password', text: 'Password' },
-              { value: 'search', text: 'Search' },
-              { value: 'date', text: 'Date' },
-              { value: 'time', text: 'Time' },
-            ],
+            input: {
+              type: 'select',
+              properties: {
+                options: [
+                  { value: 'text', text: 'Text' },
+                  { value: 'number', text: 'Number' },
+                  { value: 'email', text: 'Email' },
+                  { value: 'password', text: 'Password' },
+                  { value: 'search', text: 'Search' },
+                  { value: 'date', text: 'Date' },
+                  { value: 'time', text: 'Time' },
+                ],
+              },
+              default: 'text',
+            },
           },
         },
       },
@@ -163,10 +169,16 @@ export const prompts = Object.freeze([
         types: ['String'],
         meta: {
           visual: {
-            options: [
-              { value: 'select', text: 'Select' },
-              { value: 'radio', text: 'Radio' },
-            ],
+            input: {
+              type: 'select',
+              properties: {
+                options: [
+                  { value: 'select', text: 'Select' },
+                  { value: 'radio', text: 'Radio' },
+                ],
+              },
+              default: 'select',
+            },
           },
         },
       },

@@ -1,15 +1,18 @@
 <template>
   <div>
-    <p v-if="!!message" v-html="message" />
+    <p
+      v-if="!!message"
+      v-html="message"
+    />
 
     <b-form-group
       :label="label"
       label-class="text-primary"
     >
       <b-input
+        v-model="value"
         :type="type"
         :disabled="loading"
-        v-model="value"
       />
     </b-form-group>
     <b-button
@@ -35,17 +38,14 @@ const validTypes = [
 ]
 
 export default {
+  name: 'CPromptInput',
+
   extends: base,
-  name: 'c-prompt-input',
 
   data () {
     return {
-      value: undefined
+      value: undefined,
     }
-  },
-
-  beforeMount() {
-    this.value = this.pVal('value')
   },
 
   computed: {
@@ -60,7 +60,11 @@ export default {
 
     label () {
       return this.pVal('label', '')
-    }
+    },
+  },
+
+  beforeMount () {
+    this.value = this.pVal('inputValue')
   },
 
 }

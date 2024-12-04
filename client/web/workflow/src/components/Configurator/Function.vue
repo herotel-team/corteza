@@ -132,7 +132,7 @@
                     @input="$root.$emit('change-detected')"
                     @search="searchWorkflows"
                   />
-                  <!-- Clearable -->
+
                   <c-input-select
                     v-else-if="a.input.type === 'select'"
                     v-model="a.value"
