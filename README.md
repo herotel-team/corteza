@@ -45,33 +45,33 @@ All with the flexibility, freedom and control you get from a 100% open-source pl
 
 <br />
 
-Refer to the [DevOps guide](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/index.html) for a complete guide on how to get Corteza up and running.
+Refer to the [DevOps guide](https://docs.cortezaproject.org/corteza-docs/2023.9/devops-guide/index.html) for a complete guide on how to get Corteza up and running.
 Additionally, we've provided some [video instructions](https://forum.cortezaproject.org/t/videos-on-how-to-set-up-corteza/91).
 
 Quick references:
-* [data backup and restore](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/maintenance/backups.html)
-* [troubleshooting](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/troubleshooting/index.html)
-* [setting up an email relay](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/email-relay.html)
-* [setting up sink routes](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/sink-route.html)
-* [offline](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/examples/deploy-offline/index.html) and [online](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/examples/deploy-online/index.html) configuration examples
+* [data backup and restore](https://docs.cortezaproject.org/corteza-docs/2023.9/devops-guide/maintenance/backups.html)
+* [troubleshooting](https://docs.cortezaproject.org/corteza-docs/2023.9/devops-guide/troubleshooting/index.html)
+* [setting up an email relay](https://docs.cortezaproject.org/corteza-docs/2023.9/devops-guide/email-relay.html)
+* [setting up sink routes](https://docs.cortezaproject.org/corteza-docs/2023.9/devops-guide/sink-route.html)
+* [offline](https://docs.cortezaproject.org/corteza-docs/2023.9/devops-guide/examples/deploy-offline/index.html) and [online](https://docs.cortezaproject.org/corteza-docs/2023.9/devops-guide/examples/deploy-online/index.html) configuration examples
 * [online demo instance](https://latest.cortezaproject.org/) for a hands-on feature exploration
 
 ## Creating With Corteza
 
-Refer to the [Integrator Guide](https://docs.cortezaproject.org/corteza-docs/2022.9/integrator-guide/index.html) to learn how you can build on the core features to create virtually anything.
+Refer to the [Integrator Guide](https://docs.cortezaproject.org/corteza-docs/2023.9/integrator-guide/index.html) to learn how you can build on the core features to create virtually anything.
 
 Quick references:
-* [Corteza Compose configuration](https://docs.cortezaproject.org/corteza-docs/2022.9/integrator-guide/compose-configuration/index.html)
-* automation using [workflows](https://docs.cortezaproject.org/corteza-docs/2022.9/integrator-guide/automation/workflows/index.html) and [automation scripts](https://docs.cortezaproject.org/corteza-docs/2022.9/integrator-guide/automation/automation-scripts/index.html)
-* [using the REST API](https://docs.cortezaproject.org/corteza-docs/2022.9/integrator-guide/accessing-corteza/index.html),
+* [Corteza Compose configuration](https://docs.cortezaproject.org/corteza-docs/2023.9/integrator-guide/compose-configuration/index.html)
+* automation using [workflows](https://docs.cortezaproject.org/corteza-docs/2023.9/integrator-guide/automation/workflows/index.html) and [automation scripts](https://docs.cortezaproject.org/corteza-docs/2023.9/integrator-guide/automation/automation-scripts/index.html)
+* [using the REST API](https://docs.cortezaproject.org/corteza-docs/2023.9/integrator-guide/accessing-corteza/index.html),
 
 ## Upgrading Corteza
 
-Refer to the [changelog](https://docs.cortezaproject.org/corteza-docs/2022.9/changelog/index.html) and the [upgrade guide](https://docs.cortezaproject.org/corteza-docs/2022.9/devops-guide/upgrade/index.html) to upgrade your Corteza instance.
+Refer to the [changelog](https://docs.cortezaproject.org/corteza-docs/2023.9/changelog/index.html) and the [upgrade guide](https://docs.cortezaproject.org/corteza-docs/2023.9/devops-guide/upgrade/index.html) to upgrade your Corteza instance.
 
 ## Contributing
 
-Refer to the [Developer Guide/Corteza Server](https://docs.cortezaproject.org/corteza-docs/2022.9/developer-guide/corteza-server/index.html) document for details regarding the [development setup](https://docs.cortezaproject.org/corteza-docs/2022.9/developer-guide/corteza-server/index.html#_development_setup), the [project structure](https://docs.cortezaproject.org/corteza-docs/2022.9/developer-guide/corteza-server/structure.html), and the feature insight documents.
+Refer to the [Developer Guide/Corteza Server](https://docs.cortezaproject.org/corteza-docs/2023.9/developer-guide/corteza-server/index.html) document for details regarding the [development setup](https://docs.cortezaproject.org/corteza-docs/2023.9/developer-guide/corteza-server/index.html#_development_setup), the [project structure](https://docs.cortezaproject.org/corteza-docs/2023.9/developer-guide/corteza-server/structure.html), and the feature insight documents.
 
 Refer to the [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines and code of conduct.
 
