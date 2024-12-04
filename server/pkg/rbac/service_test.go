@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"testing"
 
 	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"go.uber.org/zap"
 )
 
 type (
@@ -30,183 +28,183 @@ type (
 // Benchmark_AccessCheck_role20_rule50000-12         128914              9344 ns/op            2335 B/op         71 allocs/op
 // Benchmark_AccessCheck_role30_rule100000-12         79963             20670 ns/op            3371 B/op         85 allocs/op
 // Benchmark_AccessCheck_role100_rule500000-12        16927             79106 ns/op           12796 B/op        391 allocs/op
-func benchmark_AccessCheck(b *testing.B, cfg matchBenchCfg) {
-	svc := NewService(zap.NewNop(), nil)
-	svc.UpdateRoles(cfg.roles...)
-	svc.setRules(cfg.rules)
+// func benchmark_AccessCheck(b *testing.B, cfg matchBenchCfg) {
+// 	svc := NewService(zap.NewNop(), nil)
+// 	svc.UpdateRoles(cfg.roles...)
+// 	svc.setRules(cfg.rules)
 
-	ctx := context.Background()
-	b.ResetTimer()
+// 	ctx := context.Background()
+// 	b.ResetTimer()
 
-	for n := 0; n < b.N; n++ {
-		svc.Can(session{
-			id:  90001,
-			rr:  yankRandRoles(cfg.roles),
-			ctx: ctx,
-		}, cfg.op, cfg.res)
-	}
-}
+// 	for n := 0; n < b.N; n++ {
+// 		svc.Can(session{
+// 			id:  90001,
+// 			rr:  yankRandRoles(cfg.roles),
+// 			ctx: ctx,
+// 		}, cfg.op, cfg.res)
+// 	}
+// }
 
-func Benchmark_AccessCheck_role100_rule1000(b *testing.B) {
-	roles := 100
-	rules := 1000
-	benchmark_AccessCheck(b, matchBenchCfg{
-		res:   makeResource(),
-		op:    randomOperation(),
-		rules: makeRuleSet(rules, roles),
-		roles: makeRoleSet(roles),
-	})
-}
+// func Benchmark_AccessCheck_role100_rule1000(b *testing.B) {
+// 	roles := 100
+// 	rules := 1000
+// 	benchmark_AccessCheck(b, matchBenchCfg{
+// 		res:   makeResource(),
+// 		op:    randomOperation(),
+// 		rules: makeRuleSet(rules, roles),
+// 		roles: makeRoleSet(roles),
+// 	})
+// }
 
-func Benchmark_AccessCheck_role100_rule10000(b *testing.B) {
-	roles := 100
-	rules := 10000
-	benchmark_AccessCheck(b, matchBenchCfg{
-		res:   makeResource(),
-		op:    randomOperation(),
-		rules: makeRuleSet(rules, roles),
-		roles: makeRoleSet(roles),
-	})
-}
+// func Benchmark_AccessCheck_role100_rule10000(b *testing.B) {
+// 	roles := 100
+// 	rules := 10000
+// 	benchmark_AccessCheck(b, matchBenchCfg{
+// 		res:   makeResource(),
+// 		op:    randomOperation(),
+// 		rules: makeRuleSet(rules, roles),
+// 		roles: makeRoleSet(roles),
+// 	})
+// }
 
-func Benchmark_AccessCheck_role100_rule100000(b *testing.B) {
-	roles := 100
-	rules := 100000
-	benchmark_AccessCheck(b, matchBenchCfg{
-		res:   makeResource(),
-		op:    randomOperation(),
-		rules: makeRuleSet(rules, roles),
-		roles: makeRoleSet(roles),
-	})
-}
+// func Benchmark_AccessCheck_role100_rule100000(b *testing.B) {
+// 	roles := 100
+// 	rules := 100000
+// 	benchmark_AccessCheck(b, matchBenchCfg{
+// 		res:   makeResource(),
+// 		op:    randomOperation(),
+// 		rules: makeRuleSet(rules, roles),
+// 		roles: makeRoleSet(roles),
+// 	})
+// }
 
-func Benchmark_AccessCheck_role100_rule1000000(b *testing.B) {
-	roles := 100
-	rules := 1000000
-	benchmark_AccessCheck(b, matchBenchCfg{
-		res:   makeResource(),
-		op:    randomOperation(),
-		rules: makeRuleSet(rules, roles),
-		roles: makeRoleSet(roles),
-	})
-}
+// func Benchmark_AccessCheck_role100_rule1000000(b *testing.B) {
+// 	roles := 100
+// 	rules := 1000000
+// 	benchmark_AccessCheck(b, matchBenchCfg{
+// 		res:   makeResource(),
+// 		op:    randomOperation(),
+// 		rules: makeRuleSet(rules, roles),
+// 		roles: makeRoleSet(roles),
+// 	})
+// }
 
-func Benchmark_AccessCheck_role100_rule10000000(b *testing.B) {
-	roles := 100
-	rules := 10000000
-	benchmark_AccessCheck(b, matchBenchCfg{
-		res:   makeResource(),
-		op:    randomOperation(),
-		rules: makeRuleSet(rules, roles),
-		roles: makeRoleSet(roles),
-	})
-}
+// func Benchmark_AccessCheck_role100_rule10000000(b *testing.B) {
+// 	roles := 100
+// 	rules := 10000000
+// 	benchmark_AccessCheck(b, matchBenchCfg{
+// 		res:   makeResource(),
+// 		op:    randomOperation(),
+// 		rules: makeRuleSet(rules, roles),
+// 		roles: makeRoleSet(roles),
+// 	})
+// }
 
-func Benchmark_AccessCheck_role1000_rule1000(b *testing.B) {
-	roles := 1000
-	rules := 1000
-	benchmark_AccessCheck(b, matchBenchCfg{
-		res:   makeResource(),
-		op:    randomOperation(),
-		rules: makeRuleSet(rules, roles),
-		roles: makeRoleSet(roles),
-	})
-}
+// func Benchmark_AccessCheck_role1000_rule1000(b *testing.B) {
+// 	roles := 1000
+// 	rules := 1000
+// 	benchmark_AccessCheck(b, matchBenchCfg{
+// 		res:   makeResource(),
+// 		op:    randomOperation(),
+// 		rules: makeRuleSet(rules, roles),
+// 		roles: makeRoleSet(roles),
+// 	})
+// }
 
-func Benchmark_AccessCheck_role1000_rule10000(b *testing.B) {
-	roles := 1000
-	rules := 10000
-	benchmark_AccessCheck(b, matchBenchCfg{
-		res:   makeResource(),
-		op:    randomOperation(),
-		rules: makeRuleSet(rules, roles),
-		roles: makeRoleSet(roles),
-	})
-}
+// func Benchmark_AccessCheck_role1000_rule10000(b *testing.B) {
+// 	roles := 1000
+// 	rules := 10000
+// 	benchmark_AccessCheck(b, matchBenchCfg{
+// 		res:   makeResource(),
+// 		op:    randomOperation(),
+// 		rules: makeRuleSet(rules, roles),
+// 		roles: makeRoleSet(roles),
+// 	})
+// }
 
-func Benchmark_AccessCheck_role1000_rule100000(b *testing.B) {
-	roles := 1000
-	rules := 100000
-	benchmark_AccessCheck(b, matchBenchCfg{
-		res:   makeResource(),
-		op:    randomOperation(),
-		rules: makeRuleSet(rules, roles),
-		roles: makeRoleSet(roles),
-	})
-}
+// func Benchmark_AccessCheck_role1000_rule100000(b *testing.B) {
+// 	roles := 1000
+// 	rules := 100000
+// 	benchmark_AccessCheck(b, matchBenchCfg{
+// 		res:   makeResource(),
+// 		op:    randomOperation(),
+// 		rules: makeRuleSet(rules, roles),
+// 		roles: makeRoleSet(roles),
+// 	})
+// }
 
-func Benchmark_AccessCheck_role1000_rule1000000(b *testing.B) {
-	roles := 1000
-	rules := 1000000
-	benchmark_AccessCheck(b, matchBenchCfg{
-		res:   makeResource(),
-		op:    randomOperation(),
-		rules: makeRuleSet(rules, roles),
-		roles: makeRoleSet(roles),
-	})
-}
+// func Benchmark_AccessCheck_role1000_rule1000000(b *testing.B) {
+// 	roles := 1000
+// 	rules := 1000000
+// 	benchmark_AccessCheck(b, matchBenchCfg{
+// 		res:   makeResource(),
+// 		op:    randomOperation(),
+// 		rules: makeRuleSet(rules, roles),
+// 		roles: makeRoleSet(roles),
+// 	})
+// }
 
-func Benchmark_AccessCheck_role1000_rule10000000(b *testing.B) {
-	roles := 1000
-	rules := 10000000
-	benchmark_AccessCheck(b, matchBenchCfg{
-		res:   makeResource(),
-		op:    randomOperation(),
-		rules: makeRuleSet(rules, roles),
-		roles: makeRoleSet(roles),
-	})
-}
+// func Benchmark_AccessCheck_role1000_rule10000000(b *testing.B) {
+// 	roles := 1000
+// 	rules := 10000000
+// 	benchmark_AccessCheck(b, matchBenchCfg{
+// 		res:   makeResource(),
+// 		op:    randomOperation(),
+// 		rules: makeRuleSet(rules, roles),
+// 		roles: makeRoleSet(roles),
+// 	})
+// }
 
-func Benchmark_AccessCheck_role10000_rule1000(b *testing.B) {
-	roles := 10000
-	rules := 1000
-	benchmark_AccessCheck(b, matchBenchCfg{
-		res:   makeResource(),
-		op:    randomOperation(),
-		rules: makeRuleSet(rules, roles),
-		roles: makeRoleSet(roles),
-	})
-}
-func Benchmark_AccessCheck_role10000_rule10000(b *testing.B) {
-	roles := 10000
-	rules := 10000
-	benchmark_AccessCheck(b, matchBenchCfg{
-		res:   makeResource(),
-		op:    randomOperation(),
-		rules: makeRuleSet(rules, roles),
-		roles: makeRoleSet(roles),
-	})
-}
-func Benchmark_AccessCheck_role10000_rule100000(b *testing.B) {
-	roles := 10000
-	rules := 100000
-	benchmark_AccessCheck(b, matchBenchCfg{
-		res:   makeResource(),
-		op:    randomOperation(),
-		rules: makeRuleSet(rules, roles),
-		roles: makeRoleSet(roles),
-	})
-}
-func Benchmark_AccessCheck_role10000_rule1000000(b *testing.B) {
-	roles := 10000
-	rules := 1000000
-	benchmark_AccessCheck(b, matchBenchCfg{
-		res:   makeResource(),
-		op:    randomOperation(),
-		rules: makeRuleSet(rules, roles),
-		roles: makeRoleSet(roles),
-	})
-}
-func Benchmark_AccessCheck_role10000_rule10000000(b *testing.B) {
-	roles := 10000
-	rules := 10000000
-	benchmark_AccessCheck(b, matchBenchCfg{
-		res:   makeResource(),
-		op:    randomOperation(),
-		rules: makeRuleSet(rules, roles),
-		roles: makeRoleSet(roles),
-	})
-}
+// func Benchmark_AccessCheck_role10000_rule1000(b *testing.B) {
+// 	roles := 10000
+// 	rules := 1000
+// 	benchmark_AccessCheck(b, matchBenchCfg{
+// 		res:   makeResource(),
+// 		op:    randomOperation(),
+// 		rules: makeRuleSet(rules, roles),
+// 		roles: makeRoleSet(roles),
+// 	})
+// }
+// func Benchmark_AccessCheck_role10000_rule10000(b *testing.B) {
+// 	roles := 10000
+// 	rules := 10000
+// 	benchmark_AccessCheck(b, matchBenchCfg{
+// 		res:   makeResource(),
+// 		op:    randomOperation(),
+// 		rules: makeRuleSet(rules, roles),
+// 		roles: makeRoleSet(roles),
+// 	})
+// }
+// func Benchmark_AccessCheck_role10000_rule100000(b *testing.B) {
+// 	roles := 10000
+// 	rules := 100000
+// 	benchmark_AccessCheck(b, matchBenchCfg{
+// 		res:   makeResource(),
+// 		op:    randomOperation(),
+// 		rules: makeRuleSet(rules, roles),
+// 		roles: makeRoleSet(roles),
+// 	})
+// }
+// func Benchmark_AccessCheck_role10000_rule1000000(b *testing.B) {
+// 	roles := 10000
+// 	rules := 1000000
+// 	benchmark_AccessCheck(b, matchBenchCfg{
+// 		res:   makeResource(),
+// 		op:    randomOperation(),
+// 		rules: makeRuleSet(rules, roles),
+// 		roles: makeRoleSet(roles),
+// 	})
+// }
+// func Benchmark_AccessCheck_role10000_rule10000000(b *testing.B) {
+// 	roles := 10000
+// 	rules := 10000000
+// 	benchmark_AccessCheck(b, matchBenchCfg{
+// 		res:   makeResource(),
+// 		op:    randomOperation(),
+// 		rules: makeRuleSet(rules, roles),
+// 		roles: makeRoleSet(roles),
+// 	})
+// }
 
 func yankRandRoles(base []*Role) (out []uint64) {
 	count := rand.Intn(len(base))

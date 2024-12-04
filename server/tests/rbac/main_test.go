@@ -134,11 +134,10 @@ func initState(t *testing.T, maxIndexSize int, things ...svcModFnc) (context.Con
 	svc, err := rbac.NewService(ctx, zap.NewNop(), defaultStore, rbac.Config{
 		Synchronous: true,
 
-		MaxIndexSize:     maxIndexSize,
-		PullInitialState: intst,
-		DecayFactor:      1,
-		DecayInterval:    time.Hour * 4,
-		CleanupInterval:  time.Hour * 4,
+		MaxIndexSize:    maxIndexSize,
+		DecayFactor:     1,
+		DecayInterval:   time.Hour * 4,
+		CleanupInterval: time.Hour * 4,
 
 		RuleStorage: store,
 		RoleStorage: store,
