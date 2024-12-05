@@ -88,12 +88,7 @@ export default {
       await this.fetchTriggers()
       await this.fetchWorkflow()
     } else {
-      this.workflow = new automation.Workflow({
-        ownedBy: this.userID,
-        runAs: '0',
-        enabled: true,
-        handle: '',
-      })
+      this.workflow = new automation.Workflow({ ownedBy: this.userID })
     }
 
     this.processing = false
@@ -107,7 +102,7 @@ export default {
     async fetchWorkflow () {
       return this.$AutomationAPI.workflowRead({ workflowID: this.workflowID })
         .then(wf => {
-          this.workflow = wf
+          this.workflow = new automation.Workflow(wf)
         })
         .catch(this.toastErrorHandler(this.$t('notification:failed-fetch-workflow')))
     },

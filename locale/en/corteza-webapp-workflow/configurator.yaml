@@ -10,6 +10,14 @@ handle:
 description:
   label: Description
   placeholder: Describe what this workflow does
+labels:
+  label: Labels
+  placeholder: Add labels
+  addNewLabel:
+    tooltip: Add new label
+    modal:
+      title: Add new label
+      placeholder: Enter label
 target: Target
 tooltip:
   run-workflow: Run workflow

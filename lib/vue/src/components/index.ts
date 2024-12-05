@@ -99,4 +99,8 @@ export {
   CFormTableWrapper,
 } from './wrapper'
 
+export {
+  CLabelBadge,
+} from './label'
+
 export { default as C3 } from './c3'

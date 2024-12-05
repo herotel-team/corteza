@@ -48,6 +48,7 @@ import {
   faParagraph,
   faTasks,
   faTable,
+  faFilter,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -110,4 +111,5 @@ library.add(
   faParagraph,
   faTasks,
   faTable,
+  faFilter,
 )

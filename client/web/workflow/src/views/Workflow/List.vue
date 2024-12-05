@@ -44,6 +44,20 @@
           {{ $t('general:new-workflow') }}
         </b-button>
 
+        <b-button
+          variant="light"
+          size="lg"
+          @click="openFilter()"
+        >
+          <font-awesome-icon
+            :icon="['fas', 'filter']"
+            :class="isFilterActive ? 'text-primary' : 'text-secondary'"
+            class="mr-1"
+          />
+
+          {{ $t('list:filter') }}
+        </b-button>
+
         <import
           v-if="canCreate"
           :disabled="importProcessing"
@@ -114,14 +128,20 @@
 
       <template #name="{ item: w }">
         {{ w.meta.name || w.handle }}
-        <h5 class="d-inline-block ml-2">
-          <b-badge
+
+        <span class="d-flex gap-1 mt-1 mb-0">
+          <c-label-badge
             v-if="w.meta.subWorkflow"
+            :value="$t('general:subworkflow')"
             variant="info"
-          >
-            {{ $t('general:subworkflow') }}
-          </b-badge>
-        </h5>
+          />
+
+          <c-label-badge
+            v-for="(label, index) in w.labels"
+            :key="index"
+            :value="label"
+          />
+        </span>
       </template>
 
       <template #enabled="{ item: w }">
@@ -217,6 +237,50 @@
         </b-dropdown>
       </template>
     </c-resource-list>
+
+    <b-modal
+      id="workflow-list-filter"
+      :title="$t('list:filter')"
+      centered
+      @ok="saveFilter()"
+    >
+      <b-form-group
+        :label="$t('labels.label')"
+        label-class="text-primary"
+      >
+        <c-input-select
+          v-model="filterModal.labels"
+          :options="filterModal.availableLabels"
+          :placeholder="$t('labels.placeholder')"
+          :get-option-label="l => l"
+          multiple
+        />
+      </b-form-group>
+
+      <template #modal-footer="{ ok, cancel }">
+        <b-button
+          variant="light"
+          class="mr-auto"
+          @click="resetFilter(cancel)"
+        >
+          {{ $t('general:reset') }}
+        </b-button>
+
+        <b-button
+          variant="light"
+          @click="cancel"
+        >
+          {{ $t('general:cancel') }}
+        </b-button>
+
+        <b-button
+          variant="primary"
+          @click="ok"
+        >
+          {{ $t('general:save') }}
+        </b-button>
+      </template>
+    </b-modal>
   </b-container>
 </template>
 
@@ -226,7 +290,7 @@ import Import from '../../components/Import'
 import Export from '../../components/Export'
 import listHelpers from '../../mixins/listHelpers'
 import { components } from '@cortezaproject/corteza-vue'
-const { CResourceList } = components
+const { CResourceList, CLabelBadge } = components
 
 export default {
   i18nOptions: {
@@ -239,6 +303,7 @@ export default {
     Import,
     Export,
     CResourceList,
+    CLabelBadge,
   },
 
   mixins: [
@@ -254,6 +319,7 @@ export default {
         deleted: 0,
         subWorkflow: 1,
         disabled: 0,
+        labels: [],
       },
 
       sorting: {
@@ -264,6 +330,12 @@ export default {
       newWorkflow: {},
 
       importProcessing: false,
+
+      filterModal: {
+        labels: [],
+
+        availableLabels: ['Foo'],
+      },
     }
   },
 
@@ -297,7 +369,6 @@ export default {
         {
           key: 'steps',
           label: this.$t('general:columns.steps'),
-          tdClass: 'align-middle',
           class: 'text-center',
           formatter: steps => {
             return (steps || []).length
@@ -326,6 +397,10 @@ export default {
         return this.$auth.user.userID
       }
       return undefined
+    },
+
+    isFilterActive () {
+      return !!this.filter.labels.length
     },
   },
 
@@ -372,7 +447,7 @@ export default {
     },
 
     workflowList () {
-      return this.procListResults(this.$AutomationAPI.workflowList(this.encodeListParams()))
+      return this.procListResults(this.$AutomationAPI.workflowList(this.encodeListParams())).catch(this.toastErrorHandler(this.$t('notification:list.load.error')))
     },
 
     handleRowClicked (workflow) {
@@ -406,6 +481,20 @@ export default {
           this.filterList()
         })
       }).catch(this.toastErrorHandler(this.$t(`notification:list.${notificationKey}.failed`)))
+    },
+
+    openFilter () {
+      this.filterModal.labels = this.filter.labels
+      this.$bvModal.show('workflow-list-filter')
+    },
+
+    saveFilter () {
+      this.filter.labels = this.filterModal.labels
+      this.filterList()
+    },
+
+    resetFilter () {
+      this.filterModal.labels = []
     },
   },
 }

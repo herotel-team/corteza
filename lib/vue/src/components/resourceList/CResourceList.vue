@@ -70,7 +70,10 @@
         @row-clicked="$emit('row-clicked', $event)"
       >
         <template #head()="field">
-          <div class="d-flex align-items-center" @click.prevent.stop>
+          <div
+            class="d-flex align-items-center"
+            @click.prevent.stop
+          >
             <div class="flex-fill text-nowrap">
               {{ field.label }}
 
@@ -334,8 +337,8 @@ export default {
 
     hidePerPageOption: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
 
   data () {
@@ -345,10 +348,6 @@ export default {
     }
   },
 
-  beforeDestroy () {
-    this.setDefaultValues()
-  },
-
   computed: {
     _fields () {
       const select = this.selectable ? [
@@ -356,7 +355,7 @@ export default {
           key: 'select',
           label: '',
           thStyle: 'width: 0; white-space: nowrap;',
-        }
+        },
       ] : []
 
       return [
@@ -405,7 +404,7 @@ export default {
         from: ((page - 1) * limit) + 1,
         to: limit > 0 ? Math.min((page * limit), total) : total,
         count: total,
-        data: total == 1 ? this.translations.resourceSingle : this.translations.resourcePlural
+        data: total === 1 ? this.translations.resourceSingle : this.translations.resourcePlural,
       }
 
       return this.$t(this.translations[total > limit ? 'showingPagination' : 'singlePluralPagination'], pagination)
@@ -424,10 +423,14 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     tableRowClasses (item = {}) {
       return {
-        'pointer': this.clickable,
+        pointer: this.clickable,
         ...this.rowClass(item),
       }
     },
@@ -439,7 +442,7 @@ export default {
       return this.items().then((items = []) => {
         this.selectableItemIDs = items.filter(this.isItemSelectable).map(i => i[this.primaryKey])
         return items
-      })
+      }).catch(() => {})
     },
 
     onSelectRow (selected, itemID) {
@@ -489,7 +492,7 @@ export default {
     },
 
     setDefaultValues () {
-      this.selected = [],
+      this.selected = []
       this.selectableItemIDs = []
     },
 

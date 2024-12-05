@@ -79,75 +79,54 @@
           <b>{{ $t('editor:run-as') }}</b> <samp>{{ getRunAs }}</samp>
         </p>
 
-        <div
-          class="d-flex align-items-center mb-1"
-        >
-          <h5
-            v-if="workflow.deletedAt"
-            class="mb-0 mr-1"
-          >
-            <b-badge
-              variant="danger"
-            >
-              {{ $t('editor:deleted') }}
-            </b-badge>
-          </h5>
+        <span class="d-flex gap-1 mb-1">
+          <c-label-badge
+            v-for="(label, index) in workflow.labels"
+            :key="index"
+            :value="label"
+          />
+        </span>
 
-          <h5
-            v-if="!workflow.enabled"
-            class="mb-0 mr-1"
-          >
-            <b-badge
-              variant="danger"
-            >
-              {{ $t('editor:disabled') }}
-            </b-badge>
-          </h5>
-
-          <h5
-            v-if="hasIssues"
-            class="mb-0 mr-1"
-          >
-            <b-badge
-              variant="danger"
-            >
-              {{ $t('editor:detected-issues') }}
-            </b-badge>
-          </h5>
-
-          <h5
+        <span class="d-flex align-items-center gap-1">
+          <c-label-badge
             v-if="workflow.meta.subWorkflow"
-            class="mb-0 mr-1"
-          >
-            <b-badge
-              variant="info"
-            >
-              {{ $t('general:subworkflow') }}
-            </b-badge>
-          </h5>
+            variant="info"
+            :value="$t('general:subworkflow')"
+          />
 
-          <h5
-            v-if="deferred"
-            class="mb-0 mr-1"
-          >
-            <b-badge
-              variant="info"
-            >
-              {{ $t('editor:deferred') }}
-            </b-badge>
-          </h5>
+          <c-label-badge
+            v-if="deffered"
+            variant="info"
+            :value="$t('editor:deferred')"
+          />
 
-          <h5
+          <c-label-badge
+            v-if="workflow.deletedAt"
+            variant="danger"
+            :value="$t('editor:deleted')"
+            class="text-white"
+          />
+
+          <c-label-badge
+            v-if="!workflow.enabled"
+            variant="danger"
+            :value="$t('editor:disabled')"
+            class="text-white"
+          />
+
+          <c-label-badge
+            v-if="hasIssues"
+            variant="danger"
+            :value="$t('editor:detected-issues')"
+            class="text-white"
+          />
+
+          <c-label-badge
             v-if="triggersPathsChanged"
-            class="mb-0 mr-1"
-          >
-            <b-badge
-              variant="warning"
-            >
-              {{ $t('notification:trigger-paths-changed') }}
-            </b-badge>
-          </h5>
-        </div>
+            variant="warning"
+            :value="$t('notification:trigger-paths-changed')"
+          />
+        </span>
       </div>
 
       <div
@@ -485,7 +464,8 @@ import VueJsonEditor from 'v-jsoneditor'
 import Import from '../components/Import'
 import Export from '../components/Export'
 import { NoID } from '@cortezaproject/corteza-js'
-import { handle } from '@cortezaproject/corteza-vue'
+import { handle, components } from '@cortezaproject/corteza-vue'
+const { CLabelBadge } = components
 
 const {
   mxClient,
@@ -533,6 +513,7 @@ export default {
     VueJsonEditor,
     Import,
     Export,
+    CLabelBadge,
   },
 
   props: {
@@ -2383,7 +2364,10 @@ export default {
             edge.source = config.parentID || edge.source
             edge.target = config.childID || edge.target
 
-            const newEdge = this.graph.insertEdge(edge.parent, edge.id, edge.value, this.vertices[edge.source].node, this.vertices[edge.target].node, edge.style)
+            const source = (this.vertices[edge.source] || {}).node
+            const target = (this.vertices[edge.target] || {}).node
+
+            const newEdge = this.graph.insertEdge(edge.parent, edge.id, edge.value, source, target, edge.style)
             newEdge.geometry.points = (edge.points || []).map(({ x, y }) => {
               return new mxPoint(x, y)
             })

@@ -1,8 +1,8 @@
 <template>
   <vue-select
-    v-model="_value"
     v-bind="$attrs"
     ref="vueSelect"
+    v-model="_value"
     data-test-id="select"
     :clearable="clearable"
     :options="options"
@@ -19,7 +19,7 @@
   >
     <template
       v-for="(_, name) in $scopedSlots"
-      v-slot:[name]="data"
+      #[name]="data"
     >
       <slot
         :name="name"
@@ -115,7 +115,7 @@ export default {
 
       set (v) {
         this.$emit('input', !v ? this.defaultValue : v)
-      }
+      },
     },
 
     sizeClass () {
@@ -253,7 +253,7 @@ export default {
 
     .vs__selected {
       margin-top: 0.375rem;
-      padding: 0 2px;
+      padding: 0 6px;
     }
 
     .vs__actions {

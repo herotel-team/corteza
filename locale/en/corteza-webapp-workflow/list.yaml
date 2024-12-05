@@ -1,2 +1,6 @@
 delete: Delete
 undelete: Undelete
+filter: Filter
+labels:
+  label: Labels
+  placeholder: Filter by labels...

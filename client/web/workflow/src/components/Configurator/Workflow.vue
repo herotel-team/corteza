@@ -45,6 +45,35 @@
     </b-form-group>
 
     <b-form-group
+      :label="$t('labels.label')"
+      label-class="text-primary"
+    >
+      <b-input-group>
+        <c-input-select
+          v-model="workflowLabels"
+          :options="availableLabels"
+          :placeholder="$t('labels.placeholder')"
+          :get-option-label="l => l"
+          multiple
+        />
+
+        <b-input-group-append>
+          <b-button
+            v-b-tooltip.hover="{ title: $t('labels.addNewLabel.tooltip'), container: '#body' }"
+            variant="light"
+            class="d-flex align-items-center"
+            @click="$bvModal.show('addNewLabel')"
+          >
+            <font-awesome-icon
+              :icon="['fas', 'plus']"
+              class="text-primary"
+            />
+          </b-button>
+        </b-input-group-append>
+      </b-input-group>
+    </b-form-group>
+
+    <b-form-group
       :label="$t('run-as.label')"
       :description="$t('run-as.description')"
       label-class="text-primary"
@@ -52,8 +81,8 @@
       <c-input-select
         data-test-id="select-run-as"
         :options="user.options"
-        :get-option-label="getOptionLabel"
-        :get-option-key="getOptionKey"
+        :get-option-label="getUserLabel"
+        :get-option-key="getUserKey"
         :value="user.value"
         :placeholder="$t('run-as.placeholder')"
         :filterable="false"
@@ -83,6 +112,35 @@
         {{ $t('sub-workflow.label') }}
       </b-form-checkbox>
     </b-form-group>
+
+    <b-modal
+      id="addNewLabel"
+      :title="$t('labels.addNewLabel.modal.title')"
+      centered
+      @cancel="newLabel = ''"
+      @ok="addNewLabel"
+    >
+      <b-form-input
+        v-model="newLabel"
+        :placeholder="$t('labels.addNewLabel.modal.placeholder')"
+      />
+
+      <template #modal-footer="{ ok, cancel }">
+        <b-button
+          variant="light"
+          @click="cancel"
+        >
+          {{ $t('general:cancel') }}
+        </b-button>
+
+        <b-button
+          variant="primary"
+          @click="ok"
+        >
+          {{ $t('general:save') }}
+        </b-button>
+      </template>
+    </b-modal>
   </div>
 </template>
 
@@ -113,6 +171,10 @@ export default {
           limit: 10,
         },
       },
+
+      allLabels: [],
+
+      newLabel: '',
     }
   },
 
@@ -123,6 +185,23 @@ export default {
 
     handleState () {
       return handle.handleState(this.workflow.handle)
+    },
+
+    availableLabels () {
+      return this.allLabels.map(l => l[Object.keys(l)[0]])
+    },
+
+    workflowLabels: {
+      get () {
+        return Object.keys(this.workflow.labels || {})
+      },
+
+      set (labels) {
+        this.$set(this.workflow, 'labels', labels.reduce((acc, label) => {
+          acc[label] = label
+          return acc
+        }, {}))
+      },
     },
   },
 
@@ -174,12 +253,22 @@ export default {
       this.$root.$emit('change-detected')
     },
 
-    getOptionKey ({ userID }) {
+    getUserKey ({ userID }) {
       return userID
     },
 
-    getOptionLabel ({ userID, email, name, username }) {
+    getUserLabel ({ userID, email, name, username }) {
       return name || username || email || `<@${userID}>`
+    },
+
+    addNewLabel () {
+      if (this.newLabel && !this.allLabels.includes(this.newLabel)) {
+        this.allLabels.push({ [this.newLabel]: this.newLabel })
+        this.workflowLabels = [...this.workflowLabels, this.newLabel]
+      }
+
+      this.newLabel = ''
+      this.$bvModal.hide('addNewLabel')
     },
   },
 }
