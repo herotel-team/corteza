@@ -76,12 +76,13 @@
         <template #default="ctx">
           <c-input-select
             v-if="field.options.selectType === 'each'"
-            v-model="value[ctx.index]"
+            :value="value[ctx.index]"
             :options="selectOptions"
             :reduce="o => o.value"
             :placeholder="$t('kind.select.placeholder')"
             :selectable="isSelectable"
             label="text"
+            @input="setMultiValue($event, ctx.index)"
           />
 
           <span v-else>{{ findLabel(value[ctx.index]) }}</span>

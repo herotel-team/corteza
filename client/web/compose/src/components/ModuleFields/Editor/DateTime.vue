@@ -40,7 +40,7 @@
       :errors="errors"
     >
       <c-input-date-time
-        v-model="value[ctx.index]"
+        :value="value[ctx.index]"
         :no-date="field.options.onlyTime"
         :no-time="field.options.onlyDate"
         :only-future="field.options.onlyFutureValues"
@@ -51,6 +51,7 @@
           now: $t('general:label.now'),
           today: $t('general:label.today'),
         }"
+        @input="setMultiValue($event, ctx.index)"
       />
     </multi>
 

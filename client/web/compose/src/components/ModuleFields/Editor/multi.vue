@@ -15,7 +15,7 @@
       <div
         v-for="(v, index) of val"
         :key="index"
-        class="d-flex w-100 align-items-center mb-1"
+        class="d-flex w-100 align-items-center mb-1 px-2"
       >
         <font-awesome-icon
           v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.dragAndDrop'), container: '#body' }"
@@ -47,7 +47,7 @@
       variant="primary"
       size="sm"
       :class="{ 'mt-2': val.length }"
-      @click="val.push(defaultValue)"
+      @click="addValue()"
     >
       + {{ $t('label.addValue') }}
     </b-button>
@@ -114,13 +114,20 @@ export default {
   },
 
   methods: {
+    addValue () {
+      this.val.push(this.defaultValue)
+
+      this.$emit('update:value', this.val)
+    },
+
     removeValue (index) {
       if (index > -1) {
         this.val.splice(index, 1)
       }
+
+      this.$emit('update:value', this.val)
     },
   },
-
 }
 </script>
 <style lang="scss" scoped>

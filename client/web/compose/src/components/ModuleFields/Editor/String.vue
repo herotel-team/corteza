@@ -42,20 +42,23 @@
     >
       <c-rich-text-input
         v-if="field.options.useRichTextEditor"
-        v-model="value[ctx.index]"
+        :value="value[ctx.index]"
         class="mr-2"
+        @input="setMultiValue($event, ctx.index)"
       />
 
       <b-form-textarea
         v-else-if="field.options.multiLine"
-        v-model="value[ctx.index]"
+        :value="value[ctx.index]"
         class="mr-2"
+        @input="setMultiValue($event, ctx.index)"
       />
 
       <b-form-input
         v-else
-        v-model="value[ctx.index]"
+        :value="value[ctx.index]"
         class="mr-2"
+        @input="setMultiValue($event, ctx.index)"
       />
     </multi>
 

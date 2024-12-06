@@ -44,11 +44,12 @@
         :append="field.options.suffix"
       >
         <b-form-input
-          v-model="value[ctx.index]"
+          :value="value[ctx.index]"
           autocomplete="off"
           type="number"
           number
           class="mr-2"
+          @input="setMultiValue($event, ctx.index)"
         />
       </b-input-group>
     </multi>

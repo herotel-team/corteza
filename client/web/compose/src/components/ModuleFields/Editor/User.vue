@@ -323,6 +323,8 @@ export default {
           this.value = undefined
         }
       }
+
+      this.$emit('change', this.value)
     },
 
     /**

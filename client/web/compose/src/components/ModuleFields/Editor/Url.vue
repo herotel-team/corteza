@@ -39,12 +39,13 @@
       :errors="errors"
     >
       <b-form-input
-        v-model="value[ctx.index]"
+        :value="value[ctx.index]"
         type="url"
         class="mr-2"
         :placeholder="$t('kind.url.example')"
         :formatter="fixUrl"
         lazy-formatter
+        @input="setMultiValue($event, ctx.index)"
       />
     </multi>
     <template

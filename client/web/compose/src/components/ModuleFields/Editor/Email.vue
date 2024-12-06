@@ -40,9 +40,10 @@
       :errors="errors"
     >
       <b-form-input
-        v-model="value[ctx.index]"
+        :value="value[ctx.index]"
         type="email"
         class="mr-2"
+        @input="setMultiValue($event, ctx.index)"
       />
     </multi>
 

@@ -145,6 +145,12 @@ export default {
     getFieldCypressId (field) {
       return `field-${field.toLowerCase().split(' ').join('-')}`
     },
+
+    setMultiValue (value, index) {
+      this.$set(this.value, index, value)
+
+      this.$emit('change', this.value)
+    },
   },
 }
 </script>

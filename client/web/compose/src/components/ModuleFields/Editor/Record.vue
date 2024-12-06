@@ -101,7 +101,6 @@
           :get-option-label="getOptionLabel"
           :disabled="!module"
           :loading="processing"
-          :clearable="false"
           :filterable="false"
           :searchable="searchable"
           :selectable="isSelectable"
@@ -338,6 +337,8 @@ export default {
           }
         }
       }
+
+      this.$emit('change', this.value)
     },
 
     isSelectable ({ recordID } = {}) {
@@ -510,6 +511,8 @@ export default {
       if (this.$refs.singleSelect) {
         this.$refs.singleSelect._data._value = undefined
       }
+
+      this.$emit('change', this.value)
     },
 
     goToPage (next = true) {
