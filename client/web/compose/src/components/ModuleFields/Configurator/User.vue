@@ -76,7 +76,7 @@ export default {
         { text: this.$t('kind.select.optionType.each'), value: 'each', allowDuplicates: true },
       ],
 
-      preloadingRoles: true,
+      preloadingRoles: false,
       currentRoles: [],
     }
   },
