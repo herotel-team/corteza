@@ -1,7 +1,7 @@
 {
   "name": "@cortezaproject/corteza-vue",
   "description": "Corteza Vue.js JavaScript/TypeScript libs",
-  "version": "2023.9.9",
+  "version": "2023.9.9-a",
   "license": "Apache-2.0",
   "author": "Denis Arh <denis.arh@crust.tech>",
   "main": "dist/index.js",

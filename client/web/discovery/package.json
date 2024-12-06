@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@cortezaproject/corteza-js": "^2023.9.9",
-    "@cortezaproject/corteza-vue": "^2023.9.9",
+    "@cortezaproject/corteza-vue": "^2023.9.9-a",
     "@fortawesome/fontawesome-svg-core": "^1.2.21",
     "@fortawesome/free-regular-svg-icons": "^5.10.1",
     "@fortawesome/free-solid-svg-icons": "^5.10.1",
