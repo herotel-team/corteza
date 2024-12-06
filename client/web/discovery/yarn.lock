@@ -988,10 +988,10 @@
     numeral "^2.0.6"
     pino "^5.16.0"
 
-"@cortezaproject/corteza-vue@^2024.9.0":
-  version "2024.9.0"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2024.9.0.tgz#4a319cee9d9f2c001fcdeefc54aca40f7b960bd5"
-  integrity sha512-t3KNY7mYh1oqgiflomqODJK1OWblfge5eglt+6nq26oXIxdT1hQwXfuRgHOZTFKZT6/swy9lA9Soow/58Wl9ow==
+"@cortezaproject/corteza-vue@^2024.9.0-a":
+  version "2024.9.0-a"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2024.9.0-a.tgz#0d68fb716147abfd59e31290960394c0ad9403c8"
+  integrity sha512-aS/OP5FEkc0Sx1M4pv1Lv32W07PTs3BtaefDORoRh5K/nY3MDySOxoimC5/83vuxNG4K2fE1UHG8rE2qlFqyIQ==
   dependencies:
     "@cortezaproject/corteza-js" "^2024.9.0"
     "@fortawesome/fontawesome-svg-core" "^1.2.26"
