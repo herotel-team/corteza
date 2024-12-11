@@ -328,10 +328,7 @@ export default {
           case compose.PageBlockCalendar.feedResources.record:
             return this.findModuleByID({ namespace: this.namespace, moduleID: feed.options.moduleID })
               .then(module => {
-                const ff = {
-                  ...feed,
-                  options: { ...feed.options },
-                }
+                const ff = compose.PageBlockCalendar.makeFeed(feed) // Clone feed, so we don't modify the original
 
                 // Interpolate prefilter variables
                 if (ff.options.prefilter) {

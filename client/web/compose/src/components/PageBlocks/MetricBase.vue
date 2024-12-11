@@ -166,6 +166,7 @@ export default {
           if (m.moduleID) {
             // prepare a fresh metric with an evaluated prefilter
             const auxM = { ...m }
+
             if (auxM.filter) {
               auxM.filter = evaluatePrefilter(auxM.filter, {
                 record: this.record,

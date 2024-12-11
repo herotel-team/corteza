@@ -190,51 +190,50 @@ export default {
       }
 
       Promise.all(this.options.feeds.filter(f => f.isValid()).map((feed, idx) => {
-        return this.findModuleByID({ namespace: this.namespace, moduleID: feed.options.moduleID })
-          .then(module => {
-            const f = { ...feed } // Clone feed, so we dont modify the original
+        return this.findModuleByID({ namespace: this.namespace, moduleID: feed.options.moduleID }).then(module => {
+          const f = compose.PageBlockGeometry.makeFeed(feed) // Clone feed, so we don't modify the original
 
-            // Interpolate prefilter variables
-            if (f.options.prefilter) {
-              f.options.prefilter = evaluatePrefilter(f.options.prefilter, {
-                record: this.record,
-                user: this.$auth.user || {},
-                recordID: (this.record || {}).recordID || NoID,
-                ownerID: (this.record || {}).ownedBy || NoID,
-                userID: (this.$auth.user || {}).userID || NoID,
-              })
-            }
+          // Interpolate prefilter variables
+          if (f.options.prefilter) {
+            f.options.prefilter = evaluatePrefilter(f.options.prefilter, {
+              record: this.record,
+              user: this.$auth.user || {},
+              recordID: (this.record || {}).recordID || NoID,
+              ownerID: (this.record || {}).ownedBy || NoID,
+              userID: (this.$auth.user || {}).userID || NoID,
+            })
+          }
 
-            return compose.PageBlockGeometry.RecordFeed(this.$ComposeAPI, module, this.namespace, f, { cancelToken: this.cancelTokenSource.token })
-              .then(records => {
-                const mapModuleField = module.fields.find(field => field.name === f.geometryField)
+          return compose.PageBlockGeometry.RecordFeed(this.$ComposeAPI, module, this.namespace, f, { cancelToken: this.cancelTokenSource.token })
+            .then(records => {
+              const mapModuleField = module.fields.find(field => field.name === f.geometryField)
 
-                if (!mapModuleField) return
+              if (!mapModuleField) return
 
-                this.geometries[idx] = records.map(record => {
-                  let geometry = record.values[f.geometryField]
-                  let markers = []
+              this.geometries[idx] = records.map(record => {
+                let geometry = record.values[f.geometryField]
+                let markers = []
 
-                  if (mapModuleField.isMulti) {
-                    geometry = geometry.map(value => this.parseGeometryField(value))
-                    markers = geometry
-                  } else {
-                    geometry = this.parseGeometryField(geometry)
-                    markers = [geometry]
-                  }
+                if (mapModuleField.isMulti) {
+                  geometry = geometry.map(value => this.parseGeometryField(value))
+                  markers = geometry
+                } else {
+                  geometry = this.parseGeometryField(geometry)
+                  markers = [geometry]
+                }
 
-                  return {
-                    title: record.values[f.titleField],
-                    geometry: f.displayPolygon ? geometry : [],
-                    markers,
-                    color: f.options.color,
-                    displayMarker: f.displayMarker,
-                    recordID: record.recordID,
-                    moduleID: record.moduleID,
-                  }
-                }).filter(g => g && g.markers.length)
-              })
-          })
+                return {
+                  title: record.values[f.titleField],
+                  geometry: f.displayPolygon ? geometry : [],
+                  markers,
+                  color: f.options.color,
+                  displayMarker: f.displayMarker,
+                  recordID: record.recordID,
+                  moduleID: record.moduleID,
+                }
+              }).filter(g => g && g.markers.length)
+            })
+        })
       })).finally(() => {
         setTimeout(() => {
           this.processing = false
