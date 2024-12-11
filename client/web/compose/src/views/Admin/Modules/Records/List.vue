@@ -44,7 +44,7 @@
 <script>
 
 import { mapGetters, mapActions } from 'vuex'
-import { compose } from '@cortezaproject/corteza-js'
+import { compose, NoID } from '@cortezaproject/corteza-js'
 import RecordListBase from 'corteza-webapp-compose/src/components/PageBlocks/RecordListBase'
 
 export default {
@@ -190,7 +190,7 @@ export default {
     }),
 
     handleFieldsSave (fields = []) {
-      fields = fields.map((f) => f.fieldID)
+      fields = fields.map((f) => f.fieldID && f.fieldID !== NoID ? f.fieldID : f.name).filter(f => !!f)
 
       if (!this.module.meta.ui) {
         this.module.meta.ui = { admin: { fields } }

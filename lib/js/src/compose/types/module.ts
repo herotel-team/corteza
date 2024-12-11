@@ -178,7 +178,14 @@ export class Module {
     },
   }
 
-  public meta: object = {};
+  public meta: Meta = {
+    ui: {
+      admin: {
+        fields: [],
+      },
+    },
+  };
+
   public labels: object = {};
 
   public createdAt?: Date = undefined;
@@ -227,11 +234,12 @@ export class Module {
     if (IsOf(m, 'meta')) {
       if (m.meta.ui && m.meta.ui.admin && m.meta.ui.admin.fields) {
         if (!AreStrings(m.meta.ui.admin.fields)) {
-          m.meta.ui.admin.fields = m.meta.ui.admin.fields.map((f: any) => f.fieldID)
+          const fields = m.meta.ui.admin.fields || []
+          m.meta.ui.admin.fields = fields.map((f: any) => f.fieldID && f.fieldID !== NoID ? f.fieldID : f.name).filter((f: any) => !!f)
         }
       }
 
-      this.meta = { ...m.meta }
+      this.meta = merge({}, this.meta, m.meta)
     }
 
     if (IsOf(m, 'config')) {

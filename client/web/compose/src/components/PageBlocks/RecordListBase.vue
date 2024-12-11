@@ -106,7 +106,7 @@
             <column-picker
               v-if="!options.hideConfigureFieldsButton"
               :module="recordListModule"
-              :fields="fields"
+              :fields="fields.map(({ moduleField }) => moduleField)"
               @updateFields="onUpdateFields"
             />
           </div>
@@ -1310,7 +1310,7 @@ export default {
 
     onUpdateFields (fields = []) {
       this.options.fields = [...fields]
-      this.customConfiguredFields = fields.map((f) => f.isSystem ? f.name : f.fieldID)
+      this.customConfiguredFields = fields.map((f) => f.isSystem ? f.name : f.fieldID).filter(f => !!f)
       this.setStorageRecordListConfiguredFields()
 
       this.$emit('save-fields', this.options.fields)

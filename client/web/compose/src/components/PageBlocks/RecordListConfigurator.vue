@@ -1065,7 +1065,7 @@ export default {
 
     onUpdateTextWrapOption (fields = []) {
       if (this.options.textStyles.wrappedFields) {
-        this.options.textStyles.wrappedFields = fields.map(f => f.fieldID)
+        this.options.textStyles.wrappedFields = fields.map(f => f.fieldID && f.fieldID !== NoID ? f.fieldID : f.name).filter(f => !!f)
       }
     },
   },
