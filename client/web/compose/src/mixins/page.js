@@ -146,7 +146,7 @@ export default {
         document.title = [title, this.namespace.name, this.$t('general:label.app-name.public')].filter(v => v).join(' | ')
       }
 
-      await this.updateBlocks(variables)
+      this.updateBlocks(variables)
     },
 
     async updateBlocks (variables = {}) {
