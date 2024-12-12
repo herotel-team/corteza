@@ -20,20 +20,15 @@ export default {
 
   computed: {
     contentBody () {
-      try {
-        const { body = '' } = this.options
+      const { body = '' } = this.options
 
-        return evaluatePrefilter(body, {
-          record: this.record,
-          user: this.$auth.user || {},
-          recordID: (this.record || {}).recordID || NoID,
-          ownerID: (this.record || {}).ownedBy || NoID,
-          userID: (this.$auth.user || {}).userID || NoID,
-        })
-      } catch (e) {
-        this.toastErrorHandler(e)
-        return ''
-      }
+      return evaluatePrefilter(body, {
+        record: this.record,
+        user: this.$auth.user || {},
+        recordID: (this.record || {}).recordID || NoID,
+        ownerID: (this.record || {}).ownedBy || NoID,
+        userID: (this.$auth.user || {}).userID || NoID,
+      })
     },
   },
 }
