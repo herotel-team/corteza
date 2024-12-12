@@ -87,7 +87,7 @@
 
     <!-- Modal for inline editing -->
     <bulk-edit-modal
-      v-if="options.inlineRecordEditEnabled"
+      v-if="options.inlineRecordEditEnabled && fieldModule"
       :namespace="namespace"
       :module="fieldModule"
       :selected-records="inlineEdit.recordIDs"
@@ -139,7 +139,7 @@ export default {
       inlineEdit: {
         fields: [],
         recordIDs: [],
-        initialRecord: {},
+        record: {},
       },
 
       abortableRequests: [],
