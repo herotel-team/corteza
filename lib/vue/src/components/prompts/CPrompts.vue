@@ -1,8 +1,6 @@
 <template>
   <div>
-    <c-prompt-toast
-      :hide-toasts="hideToasts"
-    />
+    <c-prompt-toast :hide-toasts="hideToasts" />
     <c-prompt-modal />
   </div>
 </template>
@@ -29,6 +27,7 @@ export default {
   props: {
     hideToasts: {
       type: Boolean,
+      default: false,
     },
   },
 }

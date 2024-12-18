@@ -36,12 +36,13 @@ export default {
   props: {
     hideToasts: {
       type: Boolean,
+      default: false,
     },
   },
 
   data () {
     return {
-      passive: new Set(),
+      passive: [],
 
       hasFocus: null,
       hasFocusObserver: 0,
@@ -96,7 +97,7 @@ export default {
      */
     toasts () {
       return this.hideToasts ? [] : [
-        ...this.passive.values(),
+        ...this.passive,
         ...this.active
       ]
     },
@@ -128,8 +129,8 @@ export default {
       immediate: true,
       handler (wc) {
         wc.forEach(p => {
-          if (p.passive) {
-            this.passive.add(p)
+          if (p.passive && !this.passive.some(({ prompt }) => prompt.stateID === p.prompt.stateID)) {
+            this.passive.push(p)
           }
         })
       },
@@ -161,10 +162,14 @@ export default {
       this.resume(values)
     },
 
-    onToastHide ({ prompt, passive}) {
-      if (passive) return
-
-      this.cancel(prompt)
+    onToastHide ({ prompt, passive }) {
+      setTimeout(() => {
+        if (passive) {
+          this.passive = this.passive.filter(({ prompt: p }) => p.stateID !== prompt.stateID)
+        } else {
+          this.cancel(prompt)
+        }
+      }, 300)
     },
 
     pVal (prompt, k, def = undefined) {

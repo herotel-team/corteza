@@ -145,11 +145,6 @@ export default {
               stepID,
               input,
             })
-            .then(() => {
-              setTimeout(() => {
-                this.$store.dispatch('wfPrompts/update')
-              }, 500)
-            })
             .catch(this.toastErrorHandler(this.$t('notification:automation.scriptFailed')))
             .finally(() => {
               this.processing = false

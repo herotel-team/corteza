@@ -1,7 +1,7 @@
 // This mixin is used on View component of Records.
 
 import { compose, validator, NoID } from '@cortezaproject/corteza-js'
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters } from 'vuex'
 import { throttle } from 'lodash'
 
 export default {
@@ -66,10 +66,6 @@ export default {
   },
 
   methods: {
-    ...mapActions({
-      updatePrompts: 'wfPrompts/update',
-    }),
-
     /**
      * Handle form submit for record create & update
      *
@@ -170,7 +166,6 @@ export default {
           record = new compose.Record(this.module, r)
         })
         .then(() => this.dispatchUiEvent('afterFormSubmit', record, { $records: records }))
-        .then(() => this.updatePrompts())
         .then(() => {
           if (record.valueErrors.set) {
             throw new Error(this.toastWarning(this.$t('notification:record.validationWarnings')))
@@ -239,7 +234,6 @@ export default {
           record = new compose.Record(this.module, r)
         })
         .then(() => this.dispatchUiEvent('afterFormSubmit', record))
-        .then(() => this.updatePrompts())
         .then(() => {
           if (this.record.valueErrors.set) {
             this.toastWarning(this.$t('notification:record.validationWarnings'))
@@ -272,7 +266,6 @@ export default {
         .dispatchUiEvent('beforeDelete')
         .then(() => this.$ComposeAPI.recordDelete(this.record))
         .then(this.dispatchUiEvent('afterDelete'))
-        .then(this.updatePrompts())
         .then(() => {
           this.record = undefined
           this.initialRecordState = undefined
@@ -293,7 +286,6 @@ export default {
         .dispatchUiEvent('beforeUndelete')
         .then(() => this.$ComposeAPI.recordUndelete(this.record))
         .then(this.dispatchUiEvent('afterUndelete'))
-        .then(this.updatePrompts())
         .then(() => {
           this.record = undefined
           this.initialRecordState = undefined
@@ -338,7 +330,6 @@ export default {
 
           throw err
         })
-        .then(this.updatePrompts())
         .then(() => {
           this.toastSuccess(this.$t('notification:record.bulkRecordUpdateSuccess'))
           this.onModalHide()
