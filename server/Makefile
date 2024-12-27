@@ -5,8 +5,8 @@ include Makefile.inc
 BUILD_FLAVOUR         ?= corteza
 BUILD_TIME            ?= $(shell date +%FT%T%z)
 BUILD_VERSION         ?= $(shell git describe --tags --abbrev=0)
-BUILD_ARCH            ?= $(shell go env GOARCH)
-BUILD_OS              ?= $(shell go env GOOS)
+BUILD_ARCH            ?= $(shell $(GO) env GOARCH)
+BUILD_OS              ?= $(shell $(GO) env GOOS)
 BUILD_OS_is_windows    = $(filter windows,$(BUILD_OS))
 BUILD_DEST_DIR        ?= build
 BUILD_NAME             = $(BUILD_FLAVOUR)-server-$(BUILD_VERSION)-$(BUILD_OS)-$(BUILD_ARCH)
@@ -81,7 +81,7 @@ help:
 build: $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME)
 
 $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME):
-		GOOS=$(BUILD_OS) GOARCH=$(BUILD_ARCH) go build $(LDFLAGS) -o $@ cmd/corteza/main.go
+		GOOS=$(BUILD_OS) GOARCH=$(BUILD_ARCH) $(GO) build $(LDFLAGS) -o $@ cmd/corteza/main.go
 
 release: build $(BUILD_DEST_DIR)/$(RELEASE_NAME)
 
