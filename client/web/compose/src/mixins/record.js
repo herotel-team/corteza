@@ -167,13 +167,14 @@ export default {
         })
         .then(() => this.dispatchUiEvent('afterFormSubmit', record, { $records: records }))
         .then(() => {
-          if (record.valueErrors.set) {
-            throw new Error(this.toastWarning(this.$t('notification:record.validationWarnings')))
-          } else {
-            // reset the record initial state in cases where the record edit page is redirected to the record view page
-            this.record = record
-            this.initialRecordState = this.record.clone()
+          // reset the record initial state in cases where the record edit page is redirected to the record view page
+          this.record = record
+          this.initialRecordState = this.record.clone()
 
+          if (this.record.valueErrors.set) {
+            this.toastWarning(this.$t('notification:record.validationWarnings'))
+            this.processing = false
+          } else {
             if (this.showRecordModal) {
               this.$emit('handle-record-redirect', { recordID: this.record.recordID, recordPageID: this.page.pageID, edit: false })
 
@@ -192,10 +193,10 @@ export default {
           }
         })
         .catch(e => {
-          // Since processing is set to false by the view record component, we need to set it to false here if we error out
-          // Because the view record component watchers will not be triggered
-          this.processing = false
           this.toastErrorHandler(this.$t(`notification:record.${isNew ? 'create' : 'update'}Failed`))(e)
+        })
+        .finally(() => {
+          this.processing = false
         })
     }, 500),
 
@@ -235,12 +236,12 @@ export default {
         })
         .then(() => this.dispatchUiEvent('afterFormSubmit', record))
         .then(() => {
+          this.record = record
+          this.initialRecordState = this.record.clone()
+
           if (this.record.valueErrors.set) {
             this.toastWarning(this.$t('notification:record.validationWarnings'))
           } else {
-            this.record = record
-            this.initialRecordState = this.record.clone()
-
             this.$router.push({ name: route, params: { ...this.$route.params, recordID: record.recordID, edit: false } })
           }
         })
