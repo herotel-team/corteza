@@ -629,10 +629,22 @@ export default {
 
       toggleProcessing()
 
+      // Handle different navigation scenarios after namespace operation
       if (closeOnSuccess) {
         this.$router.push(this.previousPage || { name: 'namespace.manage' })
-      } else if (!this.isEdit || this.isClone) {
-        this.$router.push({ name: 'namespace.edit', params: { namespaceID: this.namespace.namespaceID } })
+      } else if (this.isClone) {
+        this.$router.push({
+          name: 'namespace.edit',
+          params: { namespaceID: this.namespace.namespaceID },
+        })
+      } else if (!this.isEdit && this.namespace.enabled) {
+        // If namespace is enabled and user has read access, go to pages view
+        this.$router.push({
+          name: 'pages',
+          params: {
+            slug: this.namespace.slug || this.namespace.namespaceID,
+          },
+        })
       }
     },
 
