@@ -212,7 +212,6 @@ options:
     label: Multiple value delimiter
     newline: Each value in a new line
 sanitizers:
-  add: + Add
   description: Trim spaces from text or do other kinds of value manipulation before validation
   examples: Examples
   expression:

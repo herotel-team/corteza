@@ -1,12 +1,9 @@
 <template>
-  <b-form-group
-    class="p-0 m-0"
-  >
-    <b-form-row
+  <b-form-group class="p-0 m-0">
+    <div
       v-for="(expr, ei) in value"
       :key="ei"
-      class="mb-2"
-      no-gutters
+      class="d-flex align-items-center gap-1 mb-2"
     >
       <b-input-group>
         <b-input-group-prepend>
@@ -23,18 +20,14 @@
             :placeholder="placeholder"
           />
         </slot>
-        <b-input-group-addon
-          class="m-1"
-        >
-          <!-- no prompt/confirmation on empty input -->
-          <c-input-confirm
-            :no-prompt="noPrompt(value[ei])"
-            show-icon
-            @confirmed="$emit('remove', ei)"
-          />
-        </b-input-group-addon>
       </b-input-group>
-    </b-form-row>
+
+      <c-input-confirm
+        :no-prompt="noPrompt(value[ei])"
+        show-icon
+        @confirmed="$emit('remove', ei)"
+      />
+    </div>
   </b-form-group>
 </template>
 <script>

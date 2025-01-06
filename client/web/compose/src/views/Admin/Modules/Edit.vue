@@ -229,7 +229,10 @@
                     >
                       <thead>
                         <tr>
-                          <th scope="col" />
+                          <th
+                            v-if="module.fields.length > 0"
+                            scope="col"
+                          />
                           <th
                             class="text-primary"
                             scope="col"
@@ -313,9 +316,7 @@
                   {{ $t('edit.systemFields') }}
                 </h5>
 
-                <b-row
-                  no-gutters
-                >
+                <b-row no-gutters>
                   <c-form-table-wrapper hide-add-button>
                     <b-table-simple
                       borderless
@@ -324,12 +325,14 @@
                     >
                       <thead>
                         <tr>
-                          <th scope="col" />
+                          <th
+                            v-if="module.fields.length > 0"
+                            scope="col"
+                          />
 
                           <th
                             class="text-primary"
                             scope="col"
-                            style="min-width: 250px;"
                           >
                             {{ $t('general:label.name') }}
                           </th>
@@ -337,7 +340,6 @@
                           <th
                             class="text-primary"
                             scope="col"
-                            style="min-width: 250px;"
                           >
                             {{ $t('general.label.title') }}
                           </th>
@@ -346,7 +348,6 @@
                             colspan="5"
                             class="text-primary"
                             scope="col"
-                            style="min-width: 250px;"
                           >
                             {{ $t('general:label.type') }}
                           </th>
@@ -354,11 +355,36 @@
                       </thead>
 
                       <b-tbody>
-                        <field-row-view
+                        <tr
                           v-for="(field, index) in systemFields"
                           :key="index"
                           :field="field"
-                        />
+                        >
+                          <td
+                            v-if="module.fields.length > 0"
+                            class="pr-2"
+                            style="width: 30px;"
+                          />
+
+                          <td style="width: 250px;">
+                            {{ field.name }}
+                            <b-badge
+                              v-if="field.omit"
+                              variant="info"
+                              class="ml-2 align-middle"
+                            >
+                              {{ $t('unavailable') }}
+                            </b-badge>
+                          </td>
+
+                          <td style="width: 250px;">
+                            {{ field.label }}
+                          </td>
+
+                          <td>
+                            {{ field.kind }}
+                          </td>
+                        </tr>
                       </b-tbody>
                     </b-table-simple>
                   </c-form-table-wrapper>
@@ -497,7 +523,6 @@ import { mapGetters, mapActions } from 'vuex'
 import draggable from 'vuedraggable'
 import FieldConfigurator from 'corteza-webapp-compose/src/components/ModuleFields/Configurator'
 import FieldRowEdit from 'corteza-webapp-compose/src/components/Admin/Module/FieldRowEdit'
-import FieldRowView from 'corteza-webapp-compose/src/components/Admin/Module/FieldRowView'
 import FederationSettings from 'corteza-webapp-compose/src/components/Admin/Module/FederationSettings'
 import DalSchemaAlterations from 'corteza-webapp-compose/src/components/Admin/Module/DalSchemaAlterations'
 import DiscoverySettings from 'corteza-webapp-compose/src/components/Admin/Module/DiscoverySettings'
@@ -523,7 +548,6 @@ export default {
     draggable,
     FieldConfigurator,
     FieldRowEdit,
-    FieldRowView,
     FederationSettings,
     DalSchemaAlterations,
     DiscoverySettings,

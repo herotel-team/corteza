@@ -4,6 +4,7 @@
   >
     <b-form-group
       :label="$t('sanitizers.label')"
+      :description="$t('sanitizers.description')"
       label-size="lg"
       label-class="d-flex align-items-center text-primary"
     >
@@ -12,30 +13,24 @@
 
         <b-button
           variant="link"
-          class="p-0 ml-1 mr-auto"
-          @click="field.expressions.sanitizers.push('')"
-        >
-          {{ $t('sanitizers.add') }}
-        </b-button>
-
-        <b-button
-          variant="link"
           :href="`${documentationURL}#value-sanitizers`"
           target="_blank"
-          class="p-0 ml-1"
+          class="p-0 ml-auto"
         >
           {{ $t('sanitizers.examples') }}
         </b-button>
       </template>
 
-      <field-expressions
-        v-model="field.expressions.sanitizers"
-        :placeholder="$t('sanitizers.expression.placeholder')"
-        @remove="onRemove('sanitizers', $event)"
-      />
-      <b-form-text>
-        {{ $t('sanitizers.description') }}
-      </b-form-text>
+      <c-form-table-wrapper
+        :labels="{ addButton: $t('general:label.add') }"
+        @add-item="field.expressions.sanitizers.push('')"
+      >
+        <field-expressions
+          v-model="field.expressions.sanitizers"
+          :placeholder="$t('sanitizers.expression.placeholder')"
+          @remove="onRemove('sanitizers', $event)"
+        />
+      </c-form-table-wrapper>
     </b-form-group>
 
     <hr>
@@ -43,6 +38,7 @@
     <b-form-group
       label-size="lg"
       label-class="d-flex text-primary"
+      :description="$t('validators.description')"
       class="mt-3"
     >
       <template #label>
@@ -50,68 +46,61 @@
 
         <b-button
           variant="link"
-          class="p-0 ml-1 mr-auto"
-          @click="field.expressions.validators.push({ test: '', error: '' })"
-        >
-          {{ $t('sanitizers.add') }}
-        </b-button>
-
-        <b-button
-          variant="link"
           :href="`${documentationURL}#value-validators`"
           target="_blank"
-          class="p-0 ml-1"
+          class="p-0 ml-auto"
         >
           {{ $t('sanitizers.examples') }}
         </b-button>
       </template>
 
-      <field-expressions
-        v-model="field.expressions.validators"
-        v-slot="{ value }"
-        :no-prompt="v => v.error.length === 0 && v.test.length === 0"
-        @remove="onRemove('validators', $event)"
+      <c-form-table-wrapper
+        :labels="{ addButton: $t('general:label.add') }"
+        @add-item="field.expressions.validators.push({ test: '', error: '' })"
       >
-        <b-form-input
-          v-model="value.test"
-          :placeholder="$t('validators.expression.placeholder')"
-        />
-        <b-input-group-prepend>
-          <b-button
-            v-b-tooltip.noninteractive.hover="{ title: $t('validators.error.tooltip'), container: '#body' }"
-            variant="warning"
-          >
-            !
-          </b-button>
-        </b-input-group-prepend>
-        <b-form-input
-          v-model="value.error"
-          :placeholder="$t('validators.error.placeholder')"
-        />
-        <b-input-group-append>
-          <field-translator
-            v-if="field"
-            :field="field"
-            :module="module"
-            :highlight-key="`expression.validator.${value.validatorID}.error`"
-            :disabled="isNew(value)"
+        <field-expressions
+          v-model="field.expressions.validators"
+          v-slot="{ value }"
+          :no-prompt="v => v.error.length === 0 && v.test.length === 0"
+          @remove="onRemove('validators', $event)"
+        >
+          <b-form-input
+            v-model="value.test"
+            :placeholder="$t('validators.expression.placeholder')"
           />
-        </b-input-group-append>
-      </field-expressions>
+          <b-input-group-prepend>
+            <b-button
+              v-b-tooltip.noninteractive.hover="{ title: $t('validators.error.tooltip'), container: '#body' }"
+              variant="warning"
+            >
+              !
+            </b-button>
+          </b-input-group-prepend>
+          <b-form-input
+            v-model="value.error"
+            :placeholder="$t('validators.error.placeholder')"
+          />
+          <b-input-group-append>
+            <field-translator
+              v-if="field"
+              :field="field"
+              :module="module"
+              :highlight-key="`expression.validator.${value.validatorID}.error`"
+              :disabled="isNew(value)"
+            />
+          </b-input-group-append>
+        </field-expressions>
+      </c-form-table-wrapper>
 
       <b-checkbox
         v-model="field.expressions.disableDefaultValidators"
         :disabled="!field.expressions.validators || field.expressions.validators.length === 0"
         :value="true"
         :unchecked-value="false"
-        class="mt-2"
+        class="mt-3"
       >
         {{ $t('validators.disableBuiltIn') }}
       </b-checkbox>
-
-      <b-form-text>
-        {{ $t('validators.description') }}
-      </b-form-text>
     </b-form-group>
 
     <hr>
@@ -131,7 +120,7 @@
 
       <b-form-checkbox
         v-model="fieldConstraint.exists"
-        class="mt-3"
+        class="mt-2"
         @change="toggleFieldConstraint"
       >
         {{ $t('constraints.description') }}
@@ -156,7 +145,6 @@
           </b-form-group>
         </b-col>
         <b-col
-          v-if="field.isMulti"
           cols="12"
           lg="6"
         >
@@ -167,6 +155,7 @@
             <b-form-select
               v-model="constraint.multiValue"
               :options="multiValueOptions"
+              :disabled="!field.isMulti"
             />
           </b-form-group>
         </b-col>

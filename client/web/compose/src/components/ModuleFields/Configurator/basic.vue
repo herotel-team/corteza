@@ -52,7 +52,7 @@
           <b-button
             variant="outline-extra-light"
             :href="documentationURL"
-            class="d-flex justify-content-center align-items-center"
+            class="d-flex justify-content-center align-items-center text-primary"
             target="_blank"
           >
             ?

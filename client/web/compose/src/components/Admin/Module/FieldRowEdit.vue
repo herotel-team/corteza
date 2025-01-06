@@ -98,7 +98,7 @@
 
     <td
       class="text-right align-middle"
-      style="min-width: 110px;"
+      style="min-width: 7rem;"
     >
       <c-permissions-button
         v-if="canGrant && !isNew"

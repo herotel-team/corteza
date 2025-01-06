@@ -16,6 +16,8 @@
         {{ $t('uniqueValueConstraint', { index: index + 1 }) }}
         <c-input-confirm
           show-icon
+          size="md"
+          button-class="px-2"
           class="ml-2"
           @confirmed="rules.splice(index, 1)"
         />
@@ -23,28 +25,16 @@
 
       <div class="d-flex align-items-center justify-content-between flex-wrap w-100">
         <b-form-group>
-          <b-input-group>
-            <c-input-select
-              v-model="rule.currentField"
-              :placeholder="$t('searchFields')"
-              :get-option-label="getOptionLabel"
-              :get-option-key="getOptionKey"
-              :options="filterFieldOptions(rule)"
-              :reduce="o => o.name"
-              style="min-width: 300px;"
-            />
-
-            <b-input-group-append>
-              <b-button
-                variant="primary"
-                class="px-4"
-                :disabled="!rule.currentField"
-                @click="updateRuleConstraint(rule)"
-              >
-                {{ $t("add") }}
-              </b-button>
-            </b-input-group-append>
-          </b-input-group>
+          <c-input-select
+            v-model="rule.currentField"
+            :placeholder="$t('searchFields')"
+            :get-option-label="getOptionLabel"
+            :get-option-key="getOptionKey"
+            :options="filterFieldOptions(rule)"
+            :reduce="o => o.name"
+            style="min-width: 300px;"
+            @input="updateRuleConstraint(rule)"
+          />
         </b-form-group>
 
         <b-form-group
@@ -91,7 +81,7 @@
               </th>
               <th
                 scope="col"
-                style="width: 150px;"
+                style="width: 5rem;"
               />
             </tr>
           </thead>
@@ -122,7 +112,7 @@
                 />
               </td>
 
-              <td class="text-right p-0 px-4 align-middle">
+              <td class="text-right align-middle">
                 <c-input-confirm
                   show-icon
                   @confirmed="rule.constraints.splice(consIndex, 1)"
@@ -138,8 +128,8 @@
 
     <div class="d-flex">
       <b-button
-        variant="outline-light"
-        class="d-flex align-items-center border-0 text-primary ml-auto"
+        variant="primary"
+        class="d-flex align-items-center"
         @click="addNewConstraint"
       >
         <font-awesome-icon
