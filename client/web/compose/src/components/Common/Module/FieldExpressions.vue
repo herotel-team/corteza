@@ -3,8 +3,8 @@
     class="p-0 m-0"
   >
     <b-form-row
-      v-for="(expr, e) in value"
-      :key="e"
+      v-for="(expr, ei) in value"
+      :key="ei"
       class="mb-2"
       no-gutters
     >
@@ -17,9 +17,9 @@
             ƒ
           </b-button>
         </b-input-group-prepend>
-        <slot :value="value[e]">
+        <slot :value="value[ei]">
           <b-form-input
-            v-model="value[e]"
+            v-model="value[ei]"
             :placeholder="placeholder"
           />
         </slot>
@@ -28,9 +28,9 @@
         >
           <!-- no prompt/confirmation on empty input -->
           <c-input-confirm
-            :no-prompt="value[e].length === 0"
+            :no-prompt="noPrompt(value[ei])"
             show-icon
-            @confirmed="$emit('remove', e)"
+            @confirmed="$emit('remove', ei)"
           />
         </b-input-group-addon>
       </b-input-group>
@@ -53,6 +53,11 @@ export default {
     placeholder: {
       type: String,
       default: () => {},
+    },
+
+    noPrompt: {
+      type: Function,
+      default: v => v.length === 0,
     },
   },
 }

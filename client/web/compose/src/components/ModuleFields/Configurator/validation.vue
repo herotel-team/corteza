@@ -31,7 +31,7 @@
       <field-expressions
         v-model="field.expressions.sanitizers"
         :placeholder="$t('sanitizers.expression.placeholder')"
-        @remove="field.expressions.sanitizers.splice($event,1)"
+        @remove="onRemove('sanitizers', $event)"
       />
       <b-form-text>
         {{ $t('sanitizers.description') }}
@@ -69,7 +69,8 @@
       <field-expressions
         v-model="field.expressions.validators"
         v-slot="{ value }"
-        @remove="field.expressions.validators.splice($event,1)"
+        :no-prompt="v => v.error.length === 0 && v.test.length === 0"
+        @remove="onRemove('validators', $event)"
       >
         <b-form-input
           v-model="value.test"
@@ -332,6 +333,10 @@ export default {
         this.fieldConstraint.ruleIndex = this.module.config.recordDeDup.rules.length - 1
         this.fieldConstraint.index = this.module.config.recordDeDup.rules[this.fieldConstraint.ruleIndex].constraints.length - 1
       }
+    },
+
+    onRemove (type, index) {
+      this.field.expressions[type].splice(index, 1)
     },
   },
 }
