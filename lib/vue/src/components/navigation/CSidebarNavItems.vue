@@ -4,14 +4,14 @@
       v-for="({page = {}, params = {}, children = []}) of items"
       :key="pageIndex(page)"
       variant="link"
-      class="w-100 text-decoration-none p-0 pt-2 nav-item"
+      class="w-100 text-decoration-none p-0 pt-2 pb-1 nav-item"
       active-class="nav-active"
       exact-active-class="nav-active"
       :title="page.title"
       :to="{ name: page.name || defaultRouteName, params }"
     >
       <span
-        class="d-inline-block w-75 text-nowrap text-truncate"
+        class="d-inline-block w-75"
         @click="closeSidebar()"
       >
         <template
@@ -27,7 +27,7 @@
               :src="page.icon"
               class="mr-1"
               style="height: 1.5em; width: 1.5em;"
-            />
+            >
           </template>
         </template>
         <label
@@ -43,17 +43,17 @@
         <b-button
           variant="outline-light"
           size="sm"
-          class="text-primary p-0 border-0 float-right mr-1"
+          class="p-0 border-0 float-right mr-1"
           @click.self.stop.prevent="toggle(page)"
         >
           <font-awesome-icon
             v-if="!collapses[pageIndex(page)]"
-            class="pointer-none"
+            class="pointer-none text-dark"
             :icon="['fas', 'chevron-down']"
           />
           <font-awesome-icon
             v-else
-            class="pointer-none"
+            class="pointer-none text-primary"
             :icon="['fas', 'chevron-up']"
           />
         </b-button>
