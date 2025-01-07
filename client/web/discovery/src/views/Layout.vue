@@ -30,7 +30,7 @@
         :pinned.sync="pinned"
         :icon="icon"
         :logo="logo"
-        expand-on-hover
+        expand-on-click
       >
         <template #body-expanded>
           <filters />

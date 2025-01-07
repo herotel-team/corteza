@@ -32,42 +32,27 @@
 
             <b-button
               v-if="isMobile"
-              variant="outline-light border-0"
-              class="d-flex align-items-center justify-content-center p-2"
+              variant="outline-light"
+              class="d-flex align-items-center justify-content-center p-2 border-0 text-primary"
               @click="closeSidebar()"
             >
               <font-awesome-icon
                 :icon="['fas', 'times']"
-                class="h6 mb-0 text-dark"
+                class="h6 mb-0"
               />
             </b-button>
 
             <b-button
               v-else
               data-test-id="button-pin-icon"
-              variant="outline-light border-0"
-              class="d-flex align-items-center justify-content-center p-2"
-              @click="togglePin()"
+              variant="outline-light"
+              class="d-flex align-items-center justify-content-center p-2 border-0"
+              @click="closeSidebar()"
             >
               <font-awesome-icon
                 data-test-id="pin-icon"
-                :icon="['fas', 'thumbtack']"
+                :icon="['fas', 'times']"
                 :class="`h6 mb-0 ${isPinned ? 'text-primary' : 'text-secondary'}`"
-              />
-            </b-button>
-          </div>
-
-          <div
-            v-if="!isExpanded"
-            class="d-flex align-items-center justify-content-center my-3"
-          >
-            <b-button
-              variant="link"
-              @click="togglePin()"
-            >
-              <font-awesome-icon
-                :icon="['fas', 'chevron-right']"
-                class="h6 mb-0"
               />
             </b-button>
           </div>
@@ -105,30 +90,30 @@
       class="d-flex align-items-center justify-content-center tab position-absolute p-2"
     >
       <b-button
-        v-if="expandOnHover && !disabledRoutes.includes($route.name)"
+        v-if="expandOnClick && !disabledRoutes.includes($route.name)"
         data-test-id="button-sidebar-open"
-        variant="outline-light"
+        variant="outline-extra-light"
         size="lg"
-        class="d-flex align-items-center border-0"
-        @mouseover="onHover(true)"
+        class="d-flex align-items-center border-0 text-primary"
+        @click="togglePin()"
       >
         <font-awesome-icon
           :icon="['fas', 'bars']"
-          class="h4 mb-0 text-primary"
+          class="h4 mb-0"
         />
       </b-button>
 
       <b-button
         v-else-if="!disabledRoutes.includes($route.name)"
         data-test-id="button-home"
-        variant="outline-light"
+        variant="outline-extra-light"
         size="lg"
-        class="d-flex align-items-center p-2 border-0"
+        class="d-flex align-items-center p-2 border-0 text-primary"
         :to="{ name: 'root' }"
       >
         <font-awesome-icon
           :icon="['fas', 'home']"
-          class="h4 mb-0 text-primary"
+          class="h4 mb-0"
         />
       </b-button>
 
@@ -160,7 +145,7 @@ export default {
       default: false,
     },
 
-    expandOnHover: {
+    expandOnClick: {
       type: Boolean,
       default: false,
     },
@@ -221,7 +206,6 @@ export default {
 
   watch: {
     '$route.name': {
-      immediate: true,
       handler () {
         this.checkSidebar()
       },
@@ -235,7 +219,7 @@ export default {
   },
 
   created () {
-    this.checkIfMobile()
+    this.checkSidebar()
 
     this.$root.$on('close-sidebar', this.closeSidebar)
     window.addEventListener('resize', this.checkIfMobile)
@@ -249,6 +233,10 @@ export default {
   methods: {
     checkIfMobile: throttle(function () {
       this.isMobile = window.innerWidth < 1024 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
+      if (this.isMobile) {
+        this.closeSidebar()
+      }
     }, 500),
 
     checkSidebar () {
@@ -256,13 +244,15 @@ export default {
       if (this.disabledRoutes.includes(this.$route.name)) {
         this.isPinned = false
         this.isExpanded = false
-      } else if (this.expandOnHover && !this.isExpanded) {
+      } else if (this.expandOnClick && !this.isExpanded) {
         this.defaultSidebarAppearance()
       }
+
+      this.checkIfMobile()
     },
 
     onHover: throttle(function (expand) {
-      if (!this.pinned && this.expandOnHover) {
+      if (!expand && !this.pinned && this.expandOnClick) {
         setTimeout(() => {
           this.isExpanded = expand
         }, expand ? 0 : 100)
@@ -270,8 +260,14 @@ export default {
     }, 300),
 
     togglePin () {
-      this.saveSettings(!this.isPinned)
-      this.isPinned = !this.isPinned
+      if (this.expandOnClick && !this.isExpanded) {
+        this.isExpanded = true
+      }
+
+      if (!this.isMobile) {
+        this.isPinned = !this.isPinned
+        this.saveSettings(this.isPinned)
+      }
     },
 
     defaultSidebarAppearance () {
@@ -355,34 +351,23 @@ $nav-width: 320px;
 .sidebar {
   display: flex !important;
   left: calc(-#{$nav-width}) !important;
-  -webkit-transition: left 0.15s ease-in-out;
-  -moz-transition: left 0.15s ease-in-out;
-  -o-transition: left 0.15s ease-in-out;
-  transition: left 0.15s ease-in-out;
+  transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.expanded {
     left: 0 !important;
-    -webkit-transition: left 0.2s ease-in-out;
-    -moz-transition: left 0.2s ease-in-out;
-    -o-transition: left 0.2s ease-in-out;
-    transition: left 0.2s ease-in-out;
+    transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
 [dir="rtl"] {
   .sidebar {
     right: calc(-#{$nav-width}) !important;
-    -webkit-transition: right 0.15s ease-in-out;
-    -moz-transition: right 0.15s ease-in-out;
-    -o-transition: right 0.15s ease-in-out;
-    transition: right 0.15s ease-in-out;
+    left: auto !important;
+    transition: right 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
     &.expanded {
       right: 0 !important;
-      -webkit-transition: right 0.2s ease-in-out;
-      -moz-transition: right 0.2s ease-in-out;
-      -o-transition: right 0.2s ease-in-out;
-      transition: right 0.2s ease-in-out;
+      transition: right 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
   }
 }

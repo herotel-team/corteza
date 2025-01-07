@@ -42,7 +42,7 @@
         :icon="icon"
         :logo="logo"
         :disabled-routes="disabledRoutes"
-        expand-on-hover
+        expand-on-click
         :right="textDirectionality() === 'rtl'"
       >
         <template #header-expanded>

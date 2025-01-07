@@ -40,7 +40,7 @@
         :icon="icon"
         :logo="logo"
         :disabled-routes="disabledRoutes"
-        expand-on-hover
+        expand-on-click
       >
         <template #header-expanded>
           <portal-target name="sidebar-header-expanded" />

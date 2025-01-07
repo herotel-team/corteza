@@ -36,7 +36,7 @@
         :pinned.sync="pinned"
         :icon="icon"
         :logo="logo"
-        expand-on-hover
+        expand-on-click
         :right="textDirectionality() === 'rtl'"
       >
         <template #header-expanded>
