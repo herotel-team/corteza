@@ -174,7 +174,7 @@
                     lg="6"
                   >
                     <b-form-group
-                      :label="$t('newLabel')"
+                      :label="$t('general.label.name')"
                       label-class="text-primary"
                     >
                       <b-form-input
@@ -182,7 +182,7 @@
                         data-test-id="input-module-name"
                         required
                         :state="nameState"
-                        :placeholder="$t('newPlaceholder')"
+                        :placeholder="$t('general.placeholder.name')"
                       />
                     </b-form-group>
                   </b-col>

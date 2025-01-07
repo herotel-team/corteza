@@ -26,16 +26,22 @@
                 required
                 type="text"
                 class="h-100"
-                :placeholder="$t('newPlaceholder')"
+                :placeholder="$t('placeholder.title')"
               />
               <b-input-group-append>
                 <b-button
                   data-test-id="button-create-page"
                   type="submit"
                   variant="primary"
+                  :disabled="creatingPage"
+                  class="d-flex align-items-center gap-1"
                   @click="createNewPage"
                 >
-                  {{ $t('createLabel') }}
+                  {{ $t('label.createPage') }}
+                  <b-spinner
+                    v-if="creatingPage"
+                    small
+                  />
                 </b-button>
               </b-input-group-append>
             </b-input-group>
@@ -138,6 +144,8 @@ export default {
       page: new compose.Page({ visible: true }),
       processing: false,
       abortableRequests: [],
+
+      creatingPage: false,
     }
   },
 
@@ -156,8 +164,11 @@ export default {
       createPageLayout: 'pageLayout/create',
     }),
 
-    loadTree () {
-      this.processing = true
+    loadTree (toggleProcessing = true) {
+      if (toggleProcessing) {
+        this.processing = true
+      }
+
       const { namespaceID } = this.namespace
 
       const { response, cancel } = this.$ComposeAPI
@@ -174,27 +185,35 @@ export default {
           }
         })
         .finally(() => {
-          this.processing = false
+          if (toggleProcessing) {
+            this.processing = false
+          }
         })
     },
 
     createNewPage () {
+      this.creatingPage = true
+
       const { namespaceID } = this.namespace
       this.page.weight = this.tree.length
       this.createPage({ ...this.page, namespaceID }).then(({ pageID, title }) => {
         const pageLayout = new compose.PageLayout({ namespaceID, pageID, handle: 'primary', meta: { title } })
         return this.createPageLayout(pageLayout).then(() => {
-          this.$router.push({ name: 'admin.pages.edit', params: { pageID } })
+          this.$router.push({ name: 'admin.pages.builder', params: { pageID } })
         })
       }).catch((e) => {
         if (!axios.isCancel(e)) {
           this.toastErrorHandler(this.$t('notification:page.saveFailed'))(e)
         }
+      }).finally(() => {
+        setTimeout(() => {
+          this.creatingPage = false
+        }, 400)
       })
     },
 
     handleReorder () {
-      this.loadTree()
+      this.loadTree(false)
     },
 
     setDefaultValues () {

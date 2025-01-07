@@ -223,20 +223,19 @@ general:
   label:
     attributes: Attributes
     handle: Handle
-    name: Name *
+    name: Module Name *
     permissions: Permissions
     title: Title
     type: Type
     saveAndClose: Save and close
   placeholder:
-    handle: Handle
+    name: Name (e.g. "Leads")
+    handle: Unique identifier (a - z, 0 - 9, underscore, dash)
     sample: Sample
     invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
 import: Module import
 navigation:
   module: Modules
-newLabel: Module Name *
-newPlaceholder: Name used on the list of modules
 noModule: No modules
 noModuleFilter: No module matches your search
 

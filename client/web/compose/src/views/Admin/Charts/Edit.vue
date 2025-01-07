@@ -68,6 +68,7 @@
                         <b-form-input
                           v-model="chart.name"
                           :state="nameState"
+                          :placeholder="$t('general.placeholder.name')"
                         />
                       </b-form-group>
                     </b-col>

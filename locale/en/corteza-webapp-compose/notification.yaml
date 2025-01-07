@@ -115,6 +115,7 @@ page:
   saveFailed: Could not save this page
   saveFailedRequired: Could not save this page, all required module fields must be present
   saved: Page saved
+  deleted: Page deleted
   copySuccess: Block has been copied successfully
   cloneSuccess: Block has been cloned to the bottom of the page
   pasteSuccess: Block has been pasted to the bottom of the page

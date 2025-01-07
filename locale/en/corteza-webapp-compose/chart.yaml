@@ -21,7 +21,8 @@ general:
     permissions: Permissions
   value: Value
   placeholder:
-    handle: handle (a - z, 0 - 9, underscore, dash)
+    name: Name (e.g. "Sales by month")
+    handle: Unique identifier (a - z, 0 - 9, underscore, dash)
     invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
 edit:
   animation:

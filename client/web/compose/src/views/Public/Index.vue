@@ -38,7 +38,7 @@
                 :disabled="!namespace.canCreateModule"
                 variant="outline-primary"
                 size="lg"
-                @click="createNewModule"
+                :to="{ name: 'admin.modules.new' }"
               >
                 {{ $t('step.module.create') }}
               </b-button>
@@ -71,7 +71,7 @@
                 :disabled="!hasModules || !namespace.canCreateChart"
                 variant="outline-primary"
                 size="lg"
-                @click="createNewChart"
+                :to="{ name: 'admin.charts.create', params: { category: 'generic' } }"
               >
                 {{ $t('step.chart.create') }}
               </b-button>
@@ -239,42 +239,10 @@ export default {
 
   methods: {
     ...mapActions({
-      createModule: 'module/create',
       createPage: 'page/create',
       createPageLayout: 'pageLayout/create',
       createChart: 'chart/create',
     }),
-
-    createNewModule () {
-      const newModule = new compose.Module({
-        name: 'Demo Module',
-        handle: 'demo_module',
-        fields: [
-          new compose.ModuleFieldString({ fieldID: '0', name: 'Sample' }),
-        ],
-      }, this.namespace)
-
-      this.createModule(newModule).then((module) => {
-        this.$router.push({ name: 'admin.modules.edit', params: { moduleID: module.moduleID } })
-      }).catch(this.toastErrorHandler(this.$t('notification:module.createFailed')))
-    },
-
-    createNewChart () {
-      const { namespaceID } = this.namespace
-      const { moduleID = '' } = this.modules.find(m => m.moduleID) || {}
-      const newChart = new compose.Chart({
-        namespaceID,
-        name: 'Demo Chart',
-        handle: 'demo_chart',
-        config: {
-          reports: [{ moduleID }],
-        },
-      })
-
-      this.createChart(newChart).then((chart) => {
-        this.$router.push({ name: 'admin.charts.edit', params: { chartID: chart.chartID } })
-      }).catch(this.toastErrorHandler(this.$t('notification:chart.createFailed')))
-    },
 
     createNewPage () {
       const { namespaceID } = this.namespace

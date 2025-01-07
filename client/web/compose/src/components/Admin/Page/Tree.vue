@@ -3,7 +3,7 @@
     <sortable-tree
       v-if="list.length"
       :draggable="namespace.canCreatePage"
-      :data="{children:list}"
+      :data="{ children: list }"
       tag="ul"
       mixin-parent-key="parent"
       class="list-group"
@@ -15,10 +15,10 @@
         <div
           v-if="item.pageID"
           no-gutters
-          class="d-flex flex-wrap align-content-center justify-content-between pr-2"
+          class="d-flex flex-wrap align-content-center justify-content-between"
         >
           <div
-            class="px-2 flex-fill overflow-hidden text-truncate gap-1"
+            class="px-2 flex-fill overflow-hidden text-truncate gap-1 rounded-lg"
             :class="{'grab': namespace.canCreatePage }"
           >
             {{ item.title }}
@@ -88,7 +88,7 @@
               data-test-id="dropdown-permissions"
               variant="extra-light"
               size="sm"
-              class="permissions-dropdown ml-1"
+              class="permissions-dropdown ml-2"
             >
               <template #button-content>
                 <font-awesome-icon :icon="['fas', 'lock']" />
@@ -121,6 +121,52 @@
                 />
               </b-dropdown-item>
             </b-dropdown>
+
+            <template v-if="item.canDeletePage">
+              <b-dropdown
+                v-if="hasChildren(item)"
+                data-test-id="dropdown-delete"
+                variant="outline-danger"
+                :disabled="item.processingDelete"
+                size="sm"
+                toggle-class="border-0"
+                class="ml-2"
+              >
+                <template #button-content>
+                  <font-awesome-icon
+                    v-if="!item.processingDelete"
+                    :icon="['far', 'trash-alt']"
+                  />
+
+                  <b-spinner
+                    v-else
+                    small
+                  />
+                </template>
+                <b-dropdown-item
+                  data-test-id="dropdown-item-delete-update-parent-of-sub-pages"
+                  @click="handleDeletePage(item, 'rebase')"
+                >
+                  {{ $t('delete.rebase') }}
+                </b-dropdown-item>
+                <b-dropdown-item
+                  data-test-id="dropdown-item-delete-sub-pages"
+                  @click="handleDeletePage(item, 'cascade')"
+                >
+                  {{ $t('delete.cascade') }}
+                </b-dropdown-item>
+              </b-dropdown>
+
+              <c-input-confirm
+                v-else
+                show-icon
+                size="md"
+                button-class="px-2"
+                :processing="item.processingDelete"
+                class="ml-2"
+                @confirmed="handleDeletePage(item, 'cascade')"
+              />
+            </template>
           </div>
         </div>
       </template>
@@ -191,6 +237,7 @@ export default {
 
   methods: {
     ...mapActions({
+      deletePage: 'page/delete',
       updatePage: 'page/update',
     }),
 
@@ -216,10 +263,11 @@ export default {
         const pageIDs = afterParent.children.map(p => p.pageID)
         if (pageIDs.length) {
           this.$ComposeAPI.pageReorder({ namespaceID, selfID: afterID, pageIDs }).then(() => {
-            return this.$store.dispatch('page/load', { namespaceID, clear: true, force: true })
-          }).then(() => {
-            this.toastSuccess(this.$t('reordered'))
             this.$emit('reorder')
+
+            setTimeout(() => {
+              this.$store.dispatch('page/load', { namespaceID, clear: true, force: true })
+            }, 1000)
           })
             .catch(this.toastErrorHandler(this.$t('pageMoveFailed')))
         }
@@ -239,6 +287,23 @@ export default {
       }
     },
 
+    handleDeletePage (page, strategy = 'abort') {
+      this.$set(page, 'processingDelete', true)
+
+      this.deletePage({ ...page, strategy }).then(() => {
+        setTimeout(() => {
+          this.$emit('reorder')
+          this.toastSuccess(this.$t('notification:page.deleted'))
+        }, 300)
+      })
+        .catch(this.toastErrorHandler(this.$t('notification:page.deleteFailed')))
+        .finally(() => {
+          setTimeout(() => {
+            this.$set(page, 'processingDelete', false)
+          }, 300)
+        })
+    },
+
     /**
      * Validates page, returns true if there are no problems with it
      *
@@ -251,6 +316,10 @@ export default {
       }
 
       return true
+    },
+
+    hasChildren (page) {
+      return page.children && page.children.length > 0
     },
   },
 }
@@ -265,19 +334,20 @@ export default {
 
 <style lang="scss">
 //!important usage to over-ride library styling
-$input-height: 42px;
-$content-height: 48px;
-$blank-li-height: 10px;
-$left-padding: 5px;
+$input-height: 2.4rem;
+$content-height: 2.4rem;
+$blank-li-height: 1rem;
+$padding: 0.5rem;
 $border-color: var(--light);
-$hover-color: var(--light);
-$dropping-color: var(--secondary);
+$hover-color: var(--extra-light);
+$dropping-color: var(--extra-light);
 
 .page-name-input {
   height: $input-height;
 }
 
 .list-group {
+  padding-right: $padding;
   .content {
     height: 0 !important;
   }
@@ -287,13 +357,16 @@ $dropping-color: var(--secondary);
       height: 100% !important;
       min-height: $content-height !important;
       line-height: $content-height !important;
+      background-color: var(--light);
+      border-radius: 0.3rem !important;
+      margin-left: 12px;
 
       .actions {
         display: none;
       }
 
       &:hover {
-        background-color: $hover-color !important;
+        background-color: $hover-color;
 
         .actions {
           display: block;
@@ -338,9 +411,13 @@ $dropping-color: var(--secondary);
 
   .parent-li {
     border-top: 1px solid $border-color;
+    padding-bottom: $padding !important;
+    padding-top: $padding !important;
 
     .exist-li, .blank-li {
       border-top: none;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
 
       &::after {
         border-top: 2px solid $border-color !important;
@@ -374,8 +451,22 @@ $dropping-color: var(--secondary);
   }
 }
 
+.draging {
+  background-color: var(--white) !important;
+}
+
 .droper {
-  background: $dropping-color !important;
+  background-color: $dropping-color !important;
+  border-radius: 0.3rem !important;
+  margin-left: 0px !important;
+
+  .content:first-child {
+    background-color: $dropping-color !important;
+  }
+
+  .blank-li.first-child {
+    background-color: $dropping-color !important;
+  }
 }
 
 .pages-list-header {

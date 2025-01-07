@@ -66,7 +66,7 @@ block:
       pageBuilder: Page builder
       saveAndClose: Save and close
     placeholder:
-      handle: handle (a - z, 0 - 9, underscore, dash)
+      handle: Unique identifier (a - z, 0 - 9, underscore, dash)
       sample: Sample
     title: Add new block
     invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
@@ -80,7 +80,6 @@ build:
   saveAsCopy:
     ref: With references
     noRef: Without references
-createLabel: Create page
 edit:
   create: Create page
   edit: Edit page
@@ -102,6 +101,7 @@ import: 'Import page(s):'
 instructions: Drag and drop pages to adjust the order and hierarchy
 invalid: Invalid configuration
 label:
+  title: Title *
   cancel: Cancel
   description: Description
   handle: Handle
@@ -109,13 +109,15 @@ label:
   permissions: Permissions
   saveAndClose: Save and close
   delete: Delete Block
+  createPage: Create page
+placeholder:
+  title: Page title (e.g. "Leads")
 loading: Loading
 moduleEdit: Edit module
 navigation:
   page: Pages
   viewPage: View Page
 unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
-newPlaceholder: Page title
 noBlock: No block added yet
 noPages: No pages
 notVisible: Hidden

@@ -1136,6 +1136,10 @@ export default {
 
       setTimeout(() => {
         this.processingLayout = false
+
+        if (!this.blocks.length) {
+          this.$bvModal.show('createBlockSelector')
+        }
       }, 400)
     },
 

@@ -114,18 +114,13 @@
             lg="6"
           >
             <b-form-group
-              :label="`${$t('newPlaceholder')} *`"
+              :label="$t('label.title')"
               label-class="text-primary"
             >
-              <input
-                id="id"
-                v-model="page.pageID"
-                required
-                type="hidden"
-              >
               <b-form-input
                 v-model="page.title"
                 data-test-id="input-title"
+                :placeholder="$t('placeholder.title')"
                 required
                 :state="titleState"
                 class="mb-2"
@@ -1330,13 +1325,16 @@ export default {
       this.processingDelete = true
 
       this.deletePage({ ...this.page, strategy }).then(() => {
-        this.page.deletedAt = new Date()
-
-        this.$router.push({ name: 'admin.pages' })
+        setTimeout(() => {
+          this.toastSuccess(this.$t('notification:page.deleted'))
+          this.$router.push({ name: 'admin.pages' })
+        }, 300)
       })
         .catch(this.toastErrorHandler(this.$t('notification:page.deleteFailed')))
         .finally(() => {
-          this.processingDelete = false
+          setTimeout(() => {
+            this.processingDelete = false
+          }, 300)
         })
     },
 
