@@ -186,7 +186,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultModule = Module(c.SchemaAltManager)
 
 	DefaultImportSession = ImportSession()
-	DefaultRecord = Record(RecordOptions{LimitRecords: c.Limit.RecordCountPerNamespace})
+	DefaultRecord = Record(RecordOptions{LimitRecords: c.Limit.RecordCountPerModule})
 	DefaultPage = Page()
 	DefaultPageLayout = PageLayout()
 	DefaultChart = Chart()

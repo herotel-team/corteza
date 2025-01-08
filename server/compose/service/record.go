@@ -908,7 +908,7 @@ func (svc record) checkLimit(ctx context.Context, m *types.Module) (err error) {
 	// get the number of records count for the namespace
 	recordsCount, err := dalutils.ComposeRecordsCount(ctx, svc.dal, m, types.RecordFilter{
 		NamespaceID: m.NamespaceID,
-		ModuleID:    0,
+		ModuleID:    m.ID,
 	})
 	if err != nil {
 		return err

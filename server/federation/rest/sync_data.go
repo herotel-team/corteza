@@ -3,10 +3,11 @@ package rest
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/options"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/options"
 
 	cs "github.com/cortezaproject/corteza/server/compose/service"
 	ct "github.com/cortezaproject/corteza/server/compose/types"
@@ -100,7 +101,7 @@ func (ctrl SyncData) ReadExposedAll(ctx context.Context, r *request.SyncDataRead
 
 		// todo - handle error properly
 		// @todo !!!
-		if list, _, err := (cs.Record(cs.RecordOptions{LimitRecords: ctrl.opts.RecordCountPerNamespace})).Find(ctx, rf); err != nil || len(list) == 0 {
+		if list, _, err := (cs.Record(cs.RecordOptions{LimitRecords: ctrl.opts.RecordCountPerModule})).Find(ctx, rf); err != nil || len(list) == 0 {
 			continue
 		}
 
@@ -228,7 +229,7 @@ func (ctrl SyncData) readExposed(ctx context.Context, r *request.SyncDataReadExp
 	}
 
 	// @todo !!!
-	list, f, err := (cs.Record(cs.RecordOptions{LimitRecords: ctrl.opts.RecordCountPerNamespace})).Find(ctx, f)
+	list, f, err := (cs.Record(cs.RecordOptions{LimitRecords: ctrl.opts.RecordCountPerModule})).Find(ctx, f)
 
 	if err != nil {
 		return nil, err
