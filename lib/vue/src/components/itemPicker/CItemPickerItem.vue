@@ -21,14 +21,15 @@
     </b>
     <b-button
       v-if="_hideIcons"
+      v-b-tooltip.noninteractive.hover="{ title: selected ? 'Unselect' : 'Select', container: '#body' , delay: 1000 }"
       :data-test-id="`button-${selected ? 'unselect' : 'select'}`"
-      variant="link"
-      class="text-decoration-none d-flex align-items-center align-baseline ml-auto px-2"
+      variant="outline-light"
+      class="d-flex align-items-center ml-auto p-2 border-0"
+      @click.prevent.stop="$emit(selected ? 'unselect' : 'select')"
     >
       <font-awesome-icon
         :icon="[selected ? 'far' : 'fas', selected ? 'eye' : 'eye-slash']"
         class="text-muted"
-        @click="$emit(selected ? 'unselect' : 'select')"
       />
     </b-button>
   </div>

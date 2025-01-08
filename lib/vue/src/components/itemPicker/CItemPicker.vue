@@ -9,15 +9,14 @@
       <b-card-header
         class="p-0"
       >
-
-      <c-input-search
-        v-if="!hideFilter"
-        v-model.trim="query"
-        :disabled="_disabledFilter"
-        :placeholder="labels.searchPlaceholder"
-      />
-
+        <c-input-search
+          v-if="!hideFilter"
+          v-model.trim="query"
+          :disabled="_disabledFilter"
+          :placeholder="labels.searchPlaceholder"
+        />
       </b-card-header>
+
       <b-card-body
         class="d-flex p-0"
       >
@@ -32,21 +31,22 @@
               class="d-flex align-items-center"
             >
               <label
-                class="text-primary mb-0"
+                class="text-primary mb-0 py-1"
               >
                 {{ labels.availableItems }}
               </label>
               <b-button
-                data-test-id="link-select-all"
                 v-show="filteredAvailable.length && !disabled"
-                variant="link"
-                class="ml-auto px-0 text-muted"
+                data-test-id="link-select-all"
+                variant="outline-light"
+                class="ml-auto border-0 text-muted"
                 @click="selectAll()"
               >
                 {{ labels.selectAllItems }}
               </b-button>
             </div>
           </b-card-header>
+
           <b-card-body
             class="overflow-auto py-0 pl-0 pr-2"
           >
@@ -82,11 +82,11 @@
                   >
                     <template
                       v-for="(_, slot) of $scopedSlots"
-                      v-slot:[slot]="scope"
+                      #[slot]="scope"
                     >
                       <slot
                         :name="slot"
-                        :textField="textField"
+                        :text-field="textField"
                         :disabled="disabled"
                         :disabled-dragging="isDraggable"
                         :disabled-sorting="disabledSorting"
@@ -109,6 +109,7 @@
             </b-list-group>
           </b-card-body>
         </b-card>
+
         <b-card
           no-body
           class="h-100 pl-sm-0 col-sm-6 col-12 p-0"
@@ -120,21 +121,22 @@
               class="d-flex align-items-center"
             >
               <label
-                class="text-primary mb-0"
+                class="text-primary mb-0 py-1"
               >
                 {{ labels.selectedItems }}
               </label>
               <b-button
-                data-test-id="link-unselect-all"
                 v-show="filteredSelected.length && !disabled"
-                variant="link"
-                class="ml-auto px-0 text-muted"
+                data-test-id="link-unselect-all"
+                variant="outline-light"
+                class="ml-auto border-0 text-muted"
                 @click="unselectAll()"
               >
                 {{ labels.unselectAllItems }}
               </b-button>
             </div>
           </b-card-header>
+
           <b-card-body
             class="overflow-auto py-0 pl-2 pr-0"
           >
@@ -171,11 +173,11 @@
                   >
                     <template
                       v-for="(_, slot) of $scopedSlots"
-                      v-slot:[slot]="scope"
+                      #[slot]="scope"
                     >
                       <slot
                         :name="slot"
-                        :textField="textField"
+                        :text-field="textField"
                         :disabled="disabled"
                         :disabled-dragging="isDraggable"
                         :disabled-sorting="disabledSorting"
@@ -356,7 +358,7 @@ export default {
 
         // satisfy v-model
         this.$emit('input', value)
-      }
+      },
     },
 
     options: {
@@ -407,16 +409,8 @@ export default {
     },
 
     selectAll () {
-      if (this.disabledSorting) {
-        // sorting disabled, just reuse list from the frozen list
-        this.selected = [...this.frozen()]
-      } else {
-        // sorting enabled, push all items left in available
-        // at the end of the list
-        this.selected.push(...this.available)
-      }
-
-      this.available = []
+      this.selected.push(...this.filteredAvailable)
+      this.available = this.frozen().filter(i => !this.selected.includes(i))
     },
 
     select: throttle(function (item) {
@@ -435,8 +429,7 @@ export default {
     }, 300),
 
     unselectAll () {
-      this.available = [...this.frozen()]
-      this.selected = []
+      this.filteredSelected.forEach(this.unselect)
     },
 
     unselect (item) {
