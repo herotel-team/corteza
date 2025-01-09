@@ -18,13 +18,13 @@
       </span>
     </template>
 
-    <b-dropdown-item
+    <b-dropdown-item-button
       v-for="v of format.variants"
       :key="v.variant"
       @click="emitClick(v)"
     >
       {{ v.label }}
-    </b-dropdown-item>
+    </b-dropdown-item-button>
   </b-dropdown>
 </template>
 

@@ -5,21 +5,20 @@
     variant="primary"
   >
     <template v-if="filterList.length">
-      <b-dropdown-item
+      <b-dropdown-item-button
         v-for="(filter, index) in filterList"
         :key="index"
         :data-test-id="filterDropdownCypressId(filter.label)"
         :disabled="filter.disabled"
-        href="#"
         @click="onAddFilter(filter)"
       >
         {{ filter.label }}
-      </b-dropdown-item>
+      </b-dropdown-item-button>
     </template>
-    <b-dropdown-item
+
+    <b-dropdown-item-button
       v-else
       disabled
-      href="#"
     >
       <span
         data-test-id="filter-list-empty"
@@ -27,7 +26,7 @@
       >
         {{ $t('filters.filterListEmpty') }}
       </span>
-    </b-dropdown-item>
+    </b-dropdown-item-button>
   </b-dropdown>
 </template>
 

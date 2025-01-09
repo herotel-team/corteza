@@ -76,7 +76,7 @@
               </span>
             </template>
 
-            <b-dropdown-item>
+            <b-dropdown-item-button>
               <c-permissions-button
                 v-if="namespace.canGrant"
                 :title="page.title || page.handle || page.pageID"
@@ -84,12 +84,10 @@
                 :resource="`corteza::compose:page/${namespace.namespaceID}/${page.pageID}`"
                 :button-label="$t('general:label.page')"
                 :show-button-icon="false"
-                button-variant="outline-light"
-                class="border-0 text-dark text-left w-100"
               />
-            </b-dropdown-item>
+            </b-dropdown-item-button>
 
-            <b-dropdown-item>
+            <b-dropdown-item-button>
               <c-permissions-button
                 v-if="page.canGrant"
                 :title="page.title || page.handle || page.pageID"
@@ -98,10 +96,8 @@
                 :button-label="$t('general:label.pageLayout')"
                 :show-button-icon="false"
                 all-specific
-                button-variant="outline-light"
-                class="border-0 text-dark text-left w-100"
               />
-            </b-dropdown-item>
+            </b-dropdown-item-button>
           </b-dropdown>
         </template>
 
@@ -354,7 +350,7 @@
                       >
                         <c-permissions-button
                           v-if="page.canGrant && layout.pageLayoutID !== '0'"
-                          button-variant="outline-light"
+                          button-variant="outline-extra-light"
                           size="sm"
                           :title="layout.meta.title || layout.handle || layout.pageLayoutID"
                           :target="layout.meta.title || layout.handle || layout.pageLayoutID"
@@ -896,18 +892,18 @@
             variant="danger"
             :text="$t('general:label.delete')"
           >
-            <b-dropdown-item
+            <b-dropdown-item-button
               data-test-id="dropdown-item-delete-update-parent-of-sub-pages"
               @click="handleDeletePage('rebase')"
             >
               {{ $t('delete.rebase') }}
-            </b-dropdown-item>
-            <b-dropdown-item
+            </b-dropdown-item-button>
+            <b-dropdown-item-button
               data-test-id="dropdown-item-delete-sub-pages"
               @click="handleDeletePage('cascade')"
             >
               {{ $t('delete.cascade') }}
-            </b-dropdown-item>
+            </b-dropdown-item-button>
           </b-dropdown>
         </template>
       </editor-toolbar>

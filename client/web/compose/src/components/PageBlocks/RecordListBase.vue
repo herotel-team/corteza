@@ -527,7 +527,7 @@
                   </template>
 
                   <template v-if="inlineEditing">
-                    <b-dropdown-item
+                    <b-dropdown-item-button
                       v-if="isCloneRecordActionVisible"
                       @click="handleCloneInline(item.r)"
                     >
@@ -536,7 +536,7 @@
                         class="text-primary"
                       />
                       {{ $t('recordList.record.tooltip.clone') }}
-                    </b-dropdown-item>
+                    </b-dropdown-item-button>
 
                     <c-input-confirm
                       v-if="isInlineRestoreActionVisible(item.r)"
@@ -547,14 +547,14 @@
                       variant="link"
                       variant-ok="warning"
                       size="md"
-                      button-class="dropdown-item text-decoration-none text-dark rounded-0"
+                      button-class="dropdown-item"
                       icon-class="text-warning"
                       class="w-100"
                       @confirmed="handleRestoreInline(item, index)"
                     />
 
                     <!-- The user should be able to delete the record if it's not yet saved -->
-                    <b-dropdown-item
+                    <b-dropdown-item-button
                       v-else-if="isInlineDeleteActionVisible(item.r)"
                       @click.prevent="handleDeleteInline(item, index)"
                     >
@@ -563,7 +563,7 @@
                         class="text-danger"
                       />
                       {{ $t('recordList.record.tooltip.delete') }}
-                    </b-dropdown-item>
+                    </b-dropdown-item-button>
                   </template>
 
                   <template
@@ -571,7 +571,7 @@
                   >
                     <b-dropdown-item
                       v-if="isViewRecordActionVisible(item.r)"
-                      @click="handleViewRecordAction(item.r.recordID)"
+                      :to="viewRecordRoute(item.r.recordID)"
                     >
                       <font-awesome-icon
                         :icon="['far', 'file-alt']"
@@ -582,7 +582,7 @@
 
                     <b-dropdown-item
                       v-if="isEditRecordActionVisible(item.r)"
-                      @click="handleEditRecordAction(item.r.recordID)"
+                      :to="editRecordRoute(item.r.recordID)"
                     >
                       <font-awesome-icon
                         :icon="['far', 'edit']"
@@ -591,7 +591,7 @@
                       {{ $t('recordList.record.tooltip.edit') }}
                     </b-dropdown-item>
 
-                    <b-dropdown-item
+                    <b-dropdown-item-button
                       v-if="isCloneRecordActionVisible"
                       @click="handleCloneRecordAction(item.r.recordID, item.r.values)"
                     >
@@ -600,32 +600,28 @@
                         class="text-primary"
                       />
                       {{ $t('recordList.record.tooltip.clone') }}
-                    </b-dropdown-item>
+                    </b-dropdown-item-button>
 
-                    <b-dropdown-item
+                    <b-dropdown-item-button
                       v-if="isReminderActionVisible"
-                      @click.prevent="createReminder(item.r)"
+                      @click="createReminder(item.r)"
                     >
                       <font-awesome-icon
                         :icon="['far', 'bell']"
                         class="text-primary"
                       />
                       {{ $t('recordList.record.tooltip.reminder') }}
-                    </b-dropdown-item>
+                    </b-dropdown-item-button>
 
-                    <b-dropdown-item
-                      v-if="isRecordPermissionButtonVisible(item.r)"
-                      link-class="p-0"
-                      variant="light"
-                    >
+                    <b-dropdown-item-button v-if="isRecordPermissionButtonVisible(item.r)">
                       <c-permissions-button
                         :resource="`corteza::compose:record/${item.r.namespaceID}/${item.r.moduleID}/${item.r.recordID}`"
                         :target="item.r.recordID"
                         :title="item.r.recordID"
                         :button-label="$t('recordList.record.tooltip.permissions')"
-                        button-variant="link dropdown-item text-decoration-none text-dark rounded-0"
+                        button-variant="dropdown-item p-0"
                       />
-                    </b-dropdown-item>
+                    </b-dropdown-item-button>
 
                     <c-input-confirm
                       v-if="isDeleteActionVisible(item.r)"
@@ -634,7 +630,7 @@
                       borderless
                       variant="link"
                       size="md"
-                      button-class="dropdown-item text-decoration-none text-dark rounded-0"
+                      button-class="dropdown-item"
                       icon-class="text-danger"
                       class="w-100"
                       @confirmed="handleDeleteSelectedRecords(item.r.recordID)"
@@ -649,7 +645,7 @@
                       variant="link"
                       variant-ok="warning"
                       size="md"
-                      button-class="dropdown-item text-decoration-none text-dark rounded-0"
+                      button-class="dropdown-item"
                       icon-class="text-warning"
                       class="w-100"
                       @confirmed="handleRestoreSelectedRecords(item.r.recordID)"
@@ -2232,37 +2228,39 @@ export default {
       }
     },
 
-    handleViewRecordAction (recordID) {
+    viewRecordRoute (recordID) {
       if (this.inModal) {
-        this.$root.$emit('show-record-modal', {
-          recordID: recordID,
-          recordPageID: this.recordPageID,
+        return {
+          name: this.$route.name,
+          params: this.$route.params,
+          query: { ...this.$route.query, recordPageID: this.recordPageID, recordID: recordID },
           edit: false,
-        })
-      } else {
-        this.$router.push({
-          name: this.options.rowViewUrl || 'page.record',
-          params: { pageID: this.recordPageID, recordID },
-          query: null,
-          edit: false,
-        })
+        }
+      }
+
+      return {
+        name: this.options.rowViewUrl || 'page.record',
+        params: { pageID: this.recordPageID, recordID },
+        query: null,
+        edit: false,
       }
     },
 
-    handleEditRecordAction (recordID) {
+    editRecordRoute (recordID) {
       if (this.inModal) {
-        this.$root.$emit('show-record-modal', {
-          recordID: recordID,
-          recordPageID: this.recordPageID,
+        return {
+          name: this.$route.name,
+          params: this.$route.params,
+          query: { ...this.$route.query, recordPageID: this.recordPageID, recordID: recordID },
           edit: true,
-        })
-      } else {
-        this.$router.push({
-          name: this.options.rowEditUrl || 'page.record.edit',
-          params: { pageID: this.recordPageID, recordID },
-          query: null,
-          edit: true,
-        })
+        }
+      }
+
+      return {
+        name: this.options.rowEditUrl || 'page.record.edit',
+        params: { pageID: this.recordPageID, recordID },
+        query: null,
+        edit: true,
       }
     },
 

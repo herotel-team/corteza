@@ -182,26 +182,25 @@
           @hide="isThemeDropdownVisible = false"
           @click.prevent.stop
         >
-          <b-dropdown-item
+          <b-dropdown-item-button
             v-for="theme in themes"
             :key="theme.id"
             :disabled="currentTheme === theme.id"
             @click="saveThemeMode(theme.id)"
           >
             {{ theme.label }}
-          </b-dropdown-item>
+          </b-dropdown-item-button>
         </b-dropdown>
 
         <b-dropdown-divider />
 
-        <b-dropdown-item
+        <b-dropdown-item-button
           data-test-id="dropdown-profile-logout"
-          href=""
           class="mt-2"
           @click="$auth.logout()"
         >
           {{ labels.userSettingsLogout }}
-        </b-dropdown-item>
+        </b-dropdown-item-button>
       </b-dropdown>
     </div>
   </div>
@@ -260,6 +259,7 @@ export default {
     },
 
     documentationURL () {
+      /* eslint-disable no-undef */
       const [year, month] = VERSION.split('.')
       return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}/index.html`
     },

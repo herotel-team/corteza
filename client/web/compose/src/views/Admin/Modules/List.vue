@@ -70,35 +70,29 @@
             </span>
           </template>
 
-          <b-dropdown-item>
+          <b-dropdown-item-button>
             <c-permissions-button
               :resource="`corteza::compose:module/${namespace.namespaceID}/*`"
               :button-label="$t('general:label.module.single')"
               :show-button-icon="false"
-              button-variant="outline-light"
-              class="border-0 text-dark text-left w-100"
             />
-          </b-dropdown-item>
+          </b-dropdown-item-button>
 
-          <b-dropdown-item>
+          <b-dropdown-item-button>
             <c-permissions-button
               :resource="`corteza::compose:module-field/${namespace.namespaceID}/*/*`"
               :button-label="$t('general:label.field')"
               :show-button-icon="false"
-              button-variant="outline-light"
-              class="border-0 text-dark text-left w-100"
             />
-          </b-dropdown-item>
+          </b-dropdown-item-button>
 
-          <b-dropdown-item>
+          <b-dropdown-item-button>
             <c-permissions-button
               :resource="`corteza::compose:record/${namespace.namespaceID}/*/*`"
               :button-label="$t('general:label.record')"
               :show-button-icon="false"
-              button-variant="outline-light"
-              class="border-0 text-dark text-left w-100"
             />
-          </b-dropdown-item>
+          </b-dropdown-item-button>
         </b-dropdown>
       </template>
 
@@ -123,19 +117,17 @@
             <font-awesome-icon :icon="['fas', 'lock']" />
           </template>
 
-          <b-dropdown-item>
+          <b-dropdown-item-button>
             <c-permissions-button
               :title="m.name || m.handle || m.moduleID"
               :target="m.name || m.handle || m.moduleID"
               :resource="`corteza::compose:module/${namespace.namespaceID}/${m.moduleID}`"
               :button-label="$t('general:label.module.single')"
               :show-button-icon="false"
-              button-variant="outline-light"
-              class="border-0 text-dark text-left w-100"
             />
-          </b-dropdown-item>
+          </b-dropdown-item-button>
 
-          <b-dropdown-item>
+          <b-dropdown-item-button>
             <c-permissions-button
               :title="m.name || m.handle || m.moduleID"
               :target="m.name || m.handle || m.moduleID"
@@ -143,12 +135,10 @@
               :button-label="$t('general:label.field')"
               :show-button-icon="false"
               all-specific
-              button-variant="outline-light"
-              class="border-0 text-dark text-left w-100"
             />
-          </b-dropdown-item>
+          </b-dropdown-item-button>
 
-          <b-dropdown-item>
+          <b-dropdown-item-button>
             <c-permissions-button
               :title="m.name || m.handle || m.moduleID"
               :target="m.name || m.handle || m.moduleID"
@@ -156,10 +146,8 @@
               :button-label="$t('general:label.record')"
               :show-button-icon="false"
               all-specific
-              button-variant="outline-light"
-              class="border-0 text-dark text-left w-100"
             />
-          </b-dropdown-item>
+          </b-dropdown-item-button>
         </b-dropdown>
 
         <b-dropdown
@@ -194,7 +182,7 @@
             borderless
             variant="link"
             size="md"
-            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            button-class="dropdown-item"
             icon-class="text-danger"
             class="w-100"
             @confirmed="handleDelete(m)"

@@ -99,18 +99,14 @@
             />
           </template>
 
-          <b-dropdown-item
-            v-if="n.canGrant"
-            link-class="p-0"
-            variant="light"
-          >
+          <b-dropdown-item v-if="n.canGrant">
             <c-permissions-button
               :title="n.name || n.slug || n.namespaceID"
               :target="n.name || n.slug || n.namespaceID"
               :resource="`corteza::compose:namespace/${n.namespaceID}`"
               :tooltip="$t('permissions:resources.compose.namespace.tooltip')"
               :button-label="$t('permissions:ui.label')"
-              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
+              button-variant="dropdown-item p-0"
             />
           </b-dropdown-item>
 
@@ -121,7 +117,7 @@
             borderless
             variant="link"
             size="md"
-            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            button-class="dropdown-item"
             icon-class="text-danger"
             class="w-100"
             @confirmed="handleDelete(n)"

@@ -10,12 +10,12 @@
     <portal
       to="topbar-avatar-dropdown"
     >
-      <b-dropdown-item
+      <b-dropdown-item-button
         data-test-id="dropdown-item-reminders"
         @click="remindersVisible = true"
       >
         {{ $t('reminder.listLabel') }}
-      </b-dropdown-item>
+      </b-dropdown-item-button>
     </portal>
 
     <c-reminder-sidebar

@@ -12,18 +12,18 @@
           toggle-class="text-muted text-decoration-none"
           :text="sort.includes('DESC') ? $t('sort.first.newest') : $t('sort.first.oldest')"
         >
-          <b-dropdown-item
+          <b-dropdown-item-button
             :disabled="sort.includes('DESC')"
             @click="$emit('sort', 'createdAt DESC')"
           >
             {{ $t('sort.first.newest') }}
-          </b-dropdown-item>
-          <b-dropdown-item
+          </b-dropdown-item-button>
+          <b-dropdown-item-button
             :disabled="!sort.includes('DESC')"
             @click="$emit('sort', 'createdAt')"
           >
             {{ $t('sort.first.oldest') }}
-          </b-dropdown-item>
+          </b-dropdown-item-button>
         </b-dropdown>
       </h5>
     </template>

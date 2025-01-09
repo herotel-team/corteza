@@ -94,7 +94,7 @@
                 <font-awesome-icon :icon="['fas', 'lock']" />
               </template>
 
-              <b-dropdown-item>
+              <b-dropdown-item-button>
                 <c-permissions-button
                   v-if="namespace.canGrant"
                   :title="item.title || item.handle || item.pageID"
@@ -102,12 +102,10 @@
                   :resource="`corteza::compose:page/${namespace.namespaceID}/${item.pageID}`"
                   :button-label="$t('general:label.page')"
                   :show-button-icon="false"
-                  button-variant="outline-light"
-                  class="border-0 text-dark text-left w-100"
                 />
-              </b-dropdown-item>
+              </b-dropdown-item-button>
 
-              <b-dropdown-item>
+              <b-dropdown-item-button>
                 <c-permissions-button
                   v-if="item.canGrant"
                   :title="item.title || item.handle || item.pageID"
@@ -116,10 +114,8 @@
                   :button-label="$t('general:label.pageLayout')"
                   :show-button-icon="false"
                   all-specific
-                  button-variant="outline-light"
-                  class="border-0 text-dark text-left w-100"
                 />
-              </b-dropdown-item>
+              </b-dropdown-item-button>
             </b-dropdown>
 
             <template v-if="item.canDeletePage">
@@ -143,18 +139,20 @@
                     small
                   />
                 </template>
-                <b-dropdown-item
+
+                <b-dropdown-item-button
                   data-test-id="dropdown-item-delete-update-parent-of-sub-pages"
                   @click="handleDeletePage(item, 'rebase')"
                 >
                   {{ $t('delete.rebase') }}
-                </b-dropdown-item>
-                <b-dropdown-item
+                </b-dropdown-item-button>
+
+                <b-dropdown-item-button
                   data-test-id="dropdown-item-delete-sub-pages"
                   @click="handleDeletePage(item, 'cascade')"
                 >
                   {{ $t('delete.cascade') }}
-                </b-dropdown-item>
+                </b-dropdown-item-button>
               </b-dropdown>
 
               <c-input-confirm

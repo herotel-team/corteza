@@ -105,21 +105,15 @@
             />
           </template>
 
-          <b-dropdown-item
-            v-if="canGrant"
-            link-class="p-0"
-            variant="light"
-          >
+          <b-dropdown-item-button v-if="canGrant">
             <c-permissions-button
               :title="u.name || u.handle || u.email || u.userID"
               :target="u.name || u.handle || u.email || u.userID"
               :resource="`corteza::system:user/${u.userID}`"
-              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
-            >
-              <font-awesome-icon :icon="['fas', 'lock']" />
-              {{ $t('permissions') }}
-            </c-permissions-button>
-          </b-dropdown-item>
+              :button-label="$t('permissions')"
+              button-variant="dropdown-item p-0"
+            />
+          </b-dropdown-item-button>
 
           <c-input-confirm
             v-if="u.canDeleteUser"
@@ -129,7 +123,7 @@
             borderless
             variant="link"
             size="md"
-            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            button-class="dropdown-item"
             icon-class="text-danger"
             class="w-100"
             @confirmed="handleDelete(u)"

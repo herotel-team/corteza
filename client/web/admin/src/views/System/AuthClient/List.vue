@@ -79,39 +79,29 @@
             />
           </template>
 
-          <b-dropdown-item
-            v-if="a.authClientID && canGrant"
-            link-class="p-0"
-          >
+          <b-dropdown-item-button v-if="a.authClientID && canGrant">
             <c-permissions-button
               :title="a.meta.name || a.handle || a.authClientID"
               :target="a.meta.name || a.handle || a.authClientID"
               :resource="`corteza::system:auth-client/${a.authClientID}`"
-              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
-              class="text-dark d-print-none border-0"
-            >
-              <font-awesome-icon :icon="['fas', 'lock']" />
-              {{ $t('permissions') }}
-            </c-permissions-button>
-          </b-dropdown-item>
-
-          <b-dropdown-item
-            v-if="!a.isDefault && a.canDeleteAuthClient"
-            link-class="p-0"
-          >
-            <c-input-confirm
-              :text="getActionText(a)"
-              show-icon
-              :icon="getActionIcon(a)"
-              borderless
-              variant="link"
-              size="md"
-              button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
-              icon-class="text-danger"
-              class="w-100"
-              @confirmed="handleDelete(a)"
+              :button-label="$t('permissions')"
+              button-variant="dropdown-item p-0"
             />
-          </b-dropdown-item>
+          </b-dropdown-item-button>
+
+          <c-input-confirm
+            v-if="!a.isDefault && a.canDeleteAuthClient"
+            :text="getActionText(a)"
+            show-icon
+            :icon="getActionIcon(a)"
+            borderless
+            variant="link"
+            size="md"
+            button-class="dropdown-item"
+            icon-class="text-danger"
+            class="w-100"
+            @confirmed="handleDelete(a)"
+          />
         </b-dropdown>
       </template>
     </c-resource-list>

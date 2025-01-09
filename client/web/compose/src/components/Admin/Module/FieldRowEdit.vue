@@ -102,7 +102,7 @@
     >
       <c-permissions-button
         v-if="canGrant && !isNew"
-        button-variant="outline-light"
+        button-variant="outline-extra-light"
         size="sm"
         :title="value.label || value.name || value.fieldID"
         :target="value.label || value.name || value.fieldID"

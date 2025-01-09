@@ -320,18 +320,18 @@
             size="lg"
             variant="light"
           >
-            <b-dropdown-item
+            <b-dropdown-item-button
               data-test-id="dropdown-item-saveAsCopy-ref"
               @click="handleCloneLayout({ ref: true })"
             >
               {{ $t('build.saveAsCopy.ref') }}
-            </b-dropdown-item>
-            <b-dropdown-item
+            </b-dropdown-item-button>
+            <b-dropdown-item-button
               data-test-id="dropdown-item-saveAsCopy-noRef"
               @click="handleCloneLayout({ ref: false })"
             >
               {{ $t('build.saveAsCopy.noRef') }}
-            </b-dropdown-item>
+            </b-dropdown-item-button>
           </b-dropdown>
         </template>
       </editor-toolbar>

@@ -77,21 +77,17 @@
             />
           </template>
 
-          <b-dropdown-item
+          <b-dropdown-item-button
             v-if="w.workflowID && canGrant"
-            link-class="p-0"
-            variant="light"
           >
             <c-permissions-button
               :title="w.meta.name || w.handle || w.workflowID"
               :target="w.meta.name || w.handle || w.workflowID"
               :resource="`corteza::automation:workflow/${w.workflowID}`"
-              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
-            >
-              <font-awesome-icon :icon="['fas', 'lock']" />
-              {{ $t('permissions') }}
-            </c-permissions-button>
-          </b-dropdown-item>
+              :button-label="$t('permissions')"
+              button-variant="dropdown-item p-0"
+            />
+          </b-dropdown-item-button>
 
           <c-input-confirm
             v-if="(w.canDeleteWorkflow && !w.deletedAt) || (w.canUndeleteWorkflow && w.deletedAt)"
@@ -100,7 +96,7 @@
             variant="link"
             size="md"
             text-class="p-1"
-            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            button-class="dropdown-item"
             icon-class="text-danger"
             class="w-100"
             :icon="getActionIcon(w)"

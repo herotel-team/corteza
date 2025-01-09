@@ -150,22 +150,14 @@
             />
           </template>
 
-          <b-dropdown-item
-            v-if="w.canGrant"
-            link-class="p-0"
-            variant="light"
-          >
-            <c-permissions-button
-              :tooltip="$t('permissions:resources.automation.workflow.tooltip')"
-              :title="w.meta.name || w.handle || w.workflowID"
-              :target="w.meta.name || w.handle || w.workflowID"
-              :resource="`corteza::automation:workflow/${w.workflowID}`"
-              :button-label="$t('permissions:ui.label')"
-              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
+          <b-dropdown-item-button @click="handleStatusChange(w)">
+            <font-awesome-icon
+              :icon="['fas', w.enabled ? 'toggle-off' : 'toggle-on']"
             />
-          </b-dropdown-item>
+            {{ statusText(w) }}
+          </b-dropdown-item-button>
 
-          <b-dropdown-item>
+          <b-dropdown-item-button>
             <font-awesome-icon
               :icon="['fas', 'file-export']"
             />
@@ -174,17 +166,20 @@
               data-test-id="button-export-workflow"
               :workflows="([w.workflowID])"
               :file-name="w.meta.name || w.handle"
-              variant="link"
               size="md"
-              class="text-decoration-none text-dark regular-font p-0 ml-1"
+              class="p-0 ml-1"
             />
-          </b-dropdown-item>
+          </b-dropdown-item-button>
 
-          <b-dropdown-item-button @click="handleStatusChange(w)">
-            <font-awesome-icon
-              :icon="['fas', w.enabled ? 'toggle-off' : 'toggle-on']"
+          <b-dropdown-item-button v-if="w.canGrant">
+            <c-permissions-button
+              :tooltip="$t('permissions:resources.automation.workflow.tooltip')"
+              :title="w.meta.name || w.handle || w.workflowID"
+              :target="w.meta.name || w.handle || w.workflowID"
+              :resource="`corteza::automation:workflow/${w.workflowID}`"
+              :button-label="$t('permissions:ui.label')"
+              button-variant="dropdown-item p-0"
             />
-            {{ statusText(w) }}
           </b-dropdown-item-button>
 
           <c-input-confirm
@@ -195,7 +190,7 @@
             show-icon
             :text="$t('delete')"
             text-class="p-1"
-            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            button-class="dropdown-item"
             icon-class="text-danger"
             class="w-100"
             @confirmed="handleDelete(w)"
@@ -209,7 +204,7 @@
             show-icon
             :text="$t('undelete')"
             text-class="p-1"
-            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            button-class="dropdown-item"
             icon-class="text-danger"
             class="w-100"
             @confirmed="handleDelete(w)"

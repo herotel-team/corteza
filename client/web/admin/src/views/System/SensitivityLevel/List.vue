@@ -76,7 +76,7 @@
             borderless
             variant="link"
             size="md"
-            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            button-class="dropdown-item"
             icon-class="text-danger"
             class="w-100"
             @confirmed="handleDelete(s)"

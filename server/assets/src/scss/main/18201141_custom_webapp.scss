@@ -142,6 +142,8 @@ fieldset.required {
   font-family: var(--font-regular) !important;
 
   .dropdown-item {
+    outline: none !important;
+
     * {
       border: 0 !important;
       box-shadow: none !important;

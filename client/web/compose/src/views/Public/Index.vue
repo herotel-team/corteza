@@ -38,7 +38,7 @@
                 :disabled="!namespace.canCreateModule"
                 variant="outline-primary"
                 size="lg"
-                :to="{ name: 'admin.modules.new' }"
+                :to="{ name: 'admin.modules.create' }"
               >
                 {{ $t('step.module.create') }}
               </b-button>

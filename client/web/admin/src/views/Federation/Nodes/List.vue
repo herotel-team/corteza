@@ -64,22 +64,13 @@
             />
           </template>
 
-          <b-dropdown-item
-            link-class="p-0"
-          >
-            <b-button
-              size="sm"
-              variant="link"
-              class="text-decoration-none"
-              @click="openConfirmPending(n)"
-            >
-              <font-awesome-icon
-                :icon="['fas', 'exclamation-triangle']"
-                class="text-danger"
-              />
-              {{ $t('pair.confirm') }}
-            </b-button>
-          </b-dropdown-item>
+          <b-dropdown-item-button @click="openConfirmPending(n)">
+            <font-awesome-icon
+              :icon="['fas', 'exclamation-triangle']"
+              class="text-danger"
+            />
+            {{ $t('pair.confirm') }}
+          </b-dropdown-item-button>
         </b-dropdown>
       </template>
     </c-resource-list>

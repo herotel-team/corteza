@@ -18,7 +18,7 @@
       </span>
     </template>
 
-    <b-dropdown-item
+    <b-dropdown-item-button
       v-for="v of format.variants"
       :key="v.variant"
       @click="dispatchTransaction(v)"
@@ -37,7 +37,7 @@
           </span>
         </span>
       </b-button>
-    </b-dropdown-item>
+    </b-dropdown-item-button>
   </b-dropdown>
 </template>
 

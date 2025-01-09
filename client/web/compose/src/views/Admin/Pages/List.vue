@@ -62,25 +62,21 @@
                 </span>
               </template>
 
-              <b-dropdown-item>
+              <b-dropdown-item-button>
                 <c-permissions-button
                   :resource="`corteza::compose:page/${namespace.namespaceID}/*`"
                   :button-label="$t('general:label.page')"
                   :show-button-icon="false"
-                  button-variant="outline-light"
-                  class="border-0 text-dark text-left w-100"
                 />
-              </b-dropdown-item>
+              </b-dropdown-item-button>
 
-              <b-dropdown-item>
+              <b-dropdown-item-button>
                 <c-permissions-button
                   :resource="`corteza::compose:page-layout/${namespace.namespaceID}/*/*`"
                   :button-label="$t('general:label.pageLayout')"
                   :show-button-icon="false"
-                  button-variant="outline-light"
-                  class="border-0 text-dark text-left w-100"
                 />
-              </b-dropdown-item>
+              </b-dropdown-item-button>
             </b-dropdown>
           </div>
         </div>

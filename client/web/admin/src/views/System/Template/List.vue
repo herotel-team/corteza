@@ -87,20 +87,15 @@
             />
           </template>
 
-          <b-dropdown-item
-            v-if="t.templateID && canGrant"
-            link-class="p-0"
-          >
+          <b-dropdown-item-button v-if="t.templateID && canGrant">
             <c-permissions-button
               :title="t.meta.short || t.handle || t.templateID"
               :target="t.meta.short || t.handle || t.templateID"
               :resource="`corteza::system:template/${t.templateID}`"
-              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
-            >
-              <font-awesome-icon :icon="['fas', 'lock']" />
-              {{ $t('permissions') }}
-            </c-permissions-button>
-          </b-dropdown-item>
+              :button-label="$t('permissions')"
+              button-variant="dropdown-item p-0"
+            />
+          </b-dropdown-item-button>
 
           <c-input-confirm
             v-if="t.canDeleteTemplate"
@@ -110,7 +105,7 @@
             borderless
             variant="link"
             size="md"
-            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            button-class="dropdown-item"
             icon-class="text-danger"
             class="w-100"
             @confirmed="handleDelete(t)"

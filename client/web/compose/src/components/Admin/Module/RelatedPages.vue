@@ -8,41 +8,31 @@
       :boundary="boundary"
       class="related-pages-dropdown flex-fill"
     >
-      <b-dropdown-item>
-        <b-button
-          data-test-id="dropdown-link-record-page-edit"
-          :disabled="!namespace.canManageNamespace"
-          :to="{ name: 'admin.pages.builder', params: { pageID: recordPage.pageID } }"
-          variant="link"
-          class="text-dark text-decoration-none"
-        >
-          {{ $t('recordPage.edit') }}
-        </b-button>
+      <b-dropdown-item
+        v-if="recordPage"
+        data-test-id="dropdown-link-record-page-edit"
+        :disabled="!namespace.canManageNamespace"
+        :to="{ name: 'admin.pages.builder', params: { pageID: recordPage.pageID } }"
+      >
+        {{ $t('recordPage.edit') }}
       </b-dropdown-item>
 
-      <b-dropdown-item>
-        <b-button
-          v-if="recordListPage"
-          data-test-id="dropdown-link-record-list-page-edit"
-          :disabled="!namespace.canManageNamespace"
-          :to="{ name: 'admin.pages.builder', params: { pageID: recordListPage.pageID } }"
-          variant="link"
-          class="text-dark text-decoration-none"
-        >
-          {{ $t('recordListPage.edit') }}
-        </b-button>
-        <b-button
-          v-else
-          data-test-id="dropdown-link-record-list-page-create"
-          variant="link"
-          href=""
-          :disabled="processing"
-          class="text-dark text-decoration-none"
-          @click.stop.prevent="handleRecordListPageCreation"
-        >
-          {{ $t('recordListPage.create') }}
-        </b-button>
+      <b-dropdown-item
+        v-if="recordListPage"
+        :disabled="!namespace.canManageNamespace"
+        :to="{ name: 'admin.pages.builder', params: { pageID: recordListPage.pageID } }"
+      >
+        {{ $t('recordListPage.edit') }}
       </b-dropdown-item>
+
+      <b-dropdown-item-button
+        v-else
+        data-test-id="dropdown-link-record-list-page-create"
+        :disabled="processing"
+        @click.prevent.stop="handleRecordListPageCreation"
+      >
+        {{ $t('recordListPage.create') }}
+      </b-dropdown-item-button>
     </b-dropdown>
 
     <b-button
@@ -185,11 +175,3 @@ export default {
   },
 }
 </script>
-
-<style lang="scss">
-.related-pages-dropdown {
-  .dropdown-item {
-    padding: 0;
-  }
-}
-</style>

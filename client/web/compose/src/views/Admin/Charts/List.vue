@@ -39,18 +39,21 @@
           size="lg"
           :text="$t('chart.add')"
         >
-          <b-dropdown-item @click="$router.push({ name: 'admin.charts.create', params: { category: 'generic' } })">
+          <b-dropdown-item-button :to="{ name: 'admin.charts.create', params: { category: 'generic' } }">
             {{ $t('chart.addGeneric') }}
-          </b-dropdown-item>
-          <b-dropdown-item @click="$router.push({ name: 'admin.charts.create', params: { category: 'funnel' } })">
+          </b-dropdown-item-button>
+
+          <b-dropdown-item-button :to="{ name: 'admin.charts.create', params: { category: 'funnel' } }">
             {{ $t('chart.addFunnel') }}
-          </b-dropdown-item>
-          <b-dropdown-item @click="$router.push({ name: 'admin.charts.create', params: { category: 'gauge' } })">
+          </b-dropdown-item-button>
+
+          <b-dropdown-item-button :to="{ name: 'admin.charts.create', params: { category: 'gauge' } }">
             {{ $t('chart.addGauge') }}
-          </b-dropdown-item>
-          <b-dropdown-item @click="$router.push({ name: 'admin.charts.create', params: { category: 'radar' } })">
+          </b-dropdown-item-button>
+
+          <b-dropdown-item-button :to="{ name: 'admin.charts.create', params: { category: 'radar' } }">
             {{ $t('chart.addRadar') }}
-          </b-dropdown-item>
+          </b-dropdown-item-button>
         </b-dropdown>
 
         <import
@@ -90,20 +93,16 @@
             />
           </template>
 
-          <b-dropdown-item
-            v-if="c.canGrant"
-            link-class="p-0"
-            variant="light"
-          >
+          <b-dropdown-item-button v-if="c.canGrant">
             <c-permissions-button
               :title="c.name || c.handle || c.chartID"
               :target="c.name || c.handle || c.chartID"
               :resource="`corteza::compose:chart/${namespace.namespaceID}/${c.chartID}`"
               :tooltip="$t('permissions:resources.compose.chart.tooltip')"
               :button-label="$t('permissions:ui.label')"
-              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
+              button-variant="dropdown-item p-0"
             />
-          </b-dropdown-item>
+          </b-dropdown-item-button>
 
           <c-input-confirm
             v-if="c.canDeleteChart"
@@ -112,7 +111,7 @@
             borderless
             variant="link"
             size="md"
-            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            button-class="dropdown-item"
             icon-class="text-danger"
             class="w-100"
             @confirmed="handleDelete(c)"

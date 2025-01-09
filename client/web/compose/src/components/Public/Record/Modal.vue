@@ -144,7 +144,7 @@ export default {
       clearModalPreviousPage: 'ui/clearModalPreviousPage',
     }),
 
-    loadRecord ({ recordID, recordPageID, values, refRecord, edit = this.edit, pushModalPreviousPage = true }) {
+    loadRecord ({ recordID, recordPageID, values = this.$route.params.values, refRecord, edit = this.edit, pushModalPreviousPage = true }) {
       if (!recordID && !recordPageID) {
         this.onHidden()
         return

@@ -99,21 +99,15 @@
             />
           </template>
 
-          <b-dropdown-item
-            v-if="r.roleID && canGrant"
-            link-class="p-0"
-            variant="light"
-          >
+          <b-dropdown-item-button v-if="r.roleID && canGrant">
             <c-permissions-button
               :title="r.name || r.handle || r.roleID"
               :target="r.name || r.handle || r.roleID"
               :resource="`corteza::system:role/${r.roleID}`"
-              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
-            >
-              <font-awesome-icon :icon="['fas', 'lock']" />
-              {{ $t('permissions') }}
-            </c-permissions-button>
-          </b-dropdown-item>
+              :button-label="$t('permissions')"
+              button-variant="dropdown-item p-0"
+            />
+          </b-dropdown-item-button>
 
           <c-input-confirm
             v-if="r.canDeleteRole"
@@ -123,7 +117,7 @@
             borderless
             variant="link"
             size="md"
-            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            button-class="dropdown-item"
             icon-class="text-danger"
             class="w-100"
             @confirmed="handleDelete(r)"

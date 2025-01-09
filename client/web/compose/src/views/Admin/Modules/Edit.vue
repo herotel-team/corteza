@@ -108,19 +108,17 @@
                     </span>
                   </template>
 
-                  <b-dropdown-item>
+                  <b-dropdown-item-button>
                     <c-permissions-button
                       :title="module.name || module.handle || module.moduleID"
                       :target="module.name || module.handle || module.moduleID"
                       :resource="`corteza::compose:module/${namespace.namespaceID}/${module.moduleID}`"
                       :button-label="$t('general:label.module.single')"
                       :show-button-icon="false"
-                      button-variant="outline-light"
-                      class="border-0 text-dark text-left w-100"
                     />
-                  </b-dropdown-item>
+                  </b-dropdown-item-button>
 
-                  <b-dropdown-item>
+                  <b-dropdown-item-button>
                     <c-permissions-button
                       :title="module.name || module.handle || module.moduleID"
                       :target="module.name || module.handle || module.moduleID"
@@ -128,12 +126,10 @@
                       :button-label="$t('general:label.field')"
                       :show-button-icon="false"
                       all-specific
-                      button-variant="outline-light"
-                      class="border-0 text-dark text-left w-100"
                     />
-                  </b-dropdown-item>
+                  </b-dropdown-item-button>
 
-                  <b-dropdown-item>
+                  <b-dropdown-item-button>
                     <c-permissions-button
                       :title="module.name || module.handle || module.moduleID"
                       :target="module.name || module.handle || module.moduleID"
@@ -141,10 +137,8 @@
                       :button-label="$t('general:label.record')"
                       :show-button-icon="false"
                       all-specific
-                      button-variant="outline-light"
-                      class="border-0 text-dark text-left w-100"
                     />
-                  </b-dropdown-item>
+                  </b-dropdown-item-button>
                 </b-dropdown>
 
                 <related-pages

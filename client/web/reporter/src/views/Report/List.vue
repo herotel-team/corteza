@@ -106,11 +106,14 @@
             />
           </template>
 
-          <b-dropdown-item
-            v-if="r.canGrant"
-            link-class="p-0"
-            variant="light"
-          >
+          <b-dropdown-item-button @click="handleReportCloning(r)">
+            <font-awesome-icon
+              :icon="['fa','clone']"
+            />
+            {{ $t('general:resourceList.clone') }}
+          </b-dropdown-item-button>
+
+          <b-dropdown-item v-if="r.canGrant">
             <c-permissions-button
               :tooltip="$t('permissions:resources.system.report.tooltip')"
               :title="r.meta.name || r.handle || r.reportID"
@@ -118,16 +121,9 @@
               :resource="`corteza::system:report/${r.reportID}`"
               class="text-dark d-print-none border-0"
               :button-label="$t('permissions:ui.label')"
-              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
+              button-variant="dropdown-item p-0"
             />
           </b-dropdown-item>
-
-          <b-dropdown-item-button @click="handleReportCloning(r)">
-            <font-awesome-icon
-              :icon="['fa','clone']"
-            />
-            {{ $t('general:resourceList.clone') }}
-          </b-dropdown-item-button>
 
           <c-input-confirm
             v-if="r.canDeleteReport"
@@ -138,7 +134,7 @@
             size="md"
             show-icon
             text-class="p-1"
-            button-class="dropdown-item text-decoration-none regular-font rounded-0"
+            button-class="dropdown-item"
             icon-class="text-danger"
             class="w-100"
             @confirmed="handleDelete(r)"
