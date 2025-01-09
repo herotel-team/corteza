@@ -182,6 +182,19 @@ export default {
         }
       },
     },
+
+    '$route.params.slug': {
+      immediate: true,
+      handler (slug, oldSlug) {
+        if (slug !== oldSlug) {
+          document.body.classList.add(`${slug}-body`)
+        }
+
+        if (oldSlug) {
+          document.body.classList.remove(`${oldSlug}-body`)
+        }
+      },
+    },
   },
 
   created () {
