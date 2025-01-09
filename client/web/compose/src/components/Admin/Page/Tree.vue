@@ -338,34 +338,31 @@ $blank-li-height: 1rem;
 $padding: 0.5rem;
 $border-color: var(--light);
 $hover-color: var(--extra-light);
-$dropping-color: var(--extra-light);
+$dropping-color: var(--primary);
 
 .page-name-input {
   height: $input-height;
 }
 
 .list-group {
-  padding-right: $padding;
+  margin-right: $padding;
+
   .content {
     height: 0 !important;
-  }
-
-  .draging {
-    background-color: var(--white) !important;
   }
 
   .droper {
     background-color: $dropping-color !important;
     border-radius: 0.3rem !important;
-    margin-left: 0px !important;
-
-    .content:first-child {
-      background-color: $dropping-color !important;
-    }
+    margin-left: 0 !important;
 
     .blank-li.first-child {
       background-color: $dropping-color !important;
     }
+  }
+
+  .draging {
+    background-color: var(--white) !important;
   }
 
   ul {

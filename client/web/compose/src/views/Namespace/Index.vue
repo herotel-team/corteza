@@ -91,6 +91,7 @@ export default {
 
 <style scoped>
 /* fixes bottom part of page being cut off */
+
 /* CSS specific to iOS devices */
 @supports (-webkit-touch-callout: none) {
   .pb-safari {
