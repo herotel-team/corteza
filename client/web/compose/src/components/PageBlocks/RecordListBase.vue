@@ -275,6 +275,7 @@
               :module="recordListModule"
               :namespace="namespace"
               :query="bulkQuery"
+              allow-add-field
               @save="onBulkUpdate()"
             />
 
@@ -685,6 +686,7 @@
         :query="inlineEdit.query"
         :modal-title="$t('recordList.inlineEdit.modal.title')"
         open-on-select
+        :allow-add-field="options.inlineRecordEditAllowAddField"
         @save="onInlineEdit()"
         @close="onInlineEditClose()"
       />

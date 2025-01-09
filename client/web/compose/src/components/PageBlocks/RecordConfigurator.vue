@@ -44,6 +44,22 @@
           lg="6"
         >
           <b-form-group
+            :label="$t('record.inlineEdit.allowAddField')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="options.inlineRecordEditAllowAddField"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
             :label="$t('record.horizontalFormLayout')"
             label-class="text-primary"
           >
@@ -196,12 +212,13 @@
           addButton: $t('general:label.add')
         }"
         :disable-add-button="addRuleDisabled"
+        class="mb-3"
         @add-item="addRule"
       >
         <b-table-simple
           borderless
           small
-          responsive="lg"
+          responsive
         >
           <b-thead>
             <b-tr>
@@ -254,7 +271,7 @@
                 </b-input-group>
               </b-td>
               <b-td
-                class="text-center align-middle pr-2"
+                class="text-right align-middle"
                 style="width: 100px;"
               >
                 <c-input-confirm

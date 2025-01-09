@@ -292,6 +292,11 @@ record:
   horizontalFormLayout: Horizontal form layout
   inlineEdit:
     enabled: Inline value editing enabled
+    allowAddField: Allow adding fields to inline edit
+    button:
+      title: Edit value
+    modal:
+      title: Update record values
   fieldsLayoutMode:
     label: Fields layout mode
     default: Default
@@ -332,6 +337,7 @@ recordList:
     enabled: Enable inline value filtering
   inlineEdit:
     enabled: Inline value editing enabled
+    allowAddField: Allow adding fields to inline edit
     button:
       title: Edit value
     modal:
@@ -676,12 +682,6 @@ field:
   selector:
     available: Available fields
     systemField: (system field)
-  inlineEdit:
-    enabled: Inline value editing enabled
-    button:
-      title: Edit value
-    modal:
-      title: Update record values
 comment:
   label: Comments
   module:

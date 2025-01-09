@@ -43,7 +43,7 @@
                 class="inline-actions ml-2"
               >
                 <b-button
-                  v-b-tooltip.noninteractive.hover="{ title: $t('field.inlineEdit.button.title'), container: '#body' }"
+                  v-b-tooltip.noninteractive.hover="{ title: $t('record.inlineEdit.button.title'), container: '#body' }"
                   variant="outline-light"
                   size="sm"
                   :disabled="editable"
@@ -94,8 +94,9 @@
       :selected-fields="inlineEdit.fields"
       :initial-record="inlineEdit.record"
       :query="inlineEdit.query"
-      :modal-title="$t('field.inlineEdit.modal.title')"
+      :modal-title="$t('record.inlineEdit.modal.title')"
       open-on-select
+      :allow-add-field="options.inlineRecordEditAllowAddField"
       @save="onInlineEdit()"
       @close="onInlineEditClose()"
     />

@@ -24,6 +24,7 @@
     >
       <b-card
         v-if="fields.length"
+        body-class="d-flex flex-column gap-2"
         class="pt-0"
       >
         <div
@@ -51,18 +52,20 @@
       </b-card>
 
       <template #modal-footer>
-        <c-input-select
-          v-model="selectedField"
-          :placeholder="getFieldSelectorPlaceholder"
-          :get-option-label="getFieldLabel"
-          :get-option-key="getOptionKey"
-          :options="moduleFields"
-          :selectable="option => !fields.includes(option.name)"
-          :reduce="f => f.name"
-          @input="addField"
-        />
+        <template v-if="allowAddField">
+          <c-input-select
+            v-model="selectedField"
+            :placeholder="getFieldSelectorPlaceholder"
+            :get-option-label="getFieldLabel"
+            :get-option-key="getOptionKey"
+            :options="moduleFields"
+            :selectable="option => !fields.includes(option.name)"
+            :reduce="f => f.name"
+            @input="addField"
+          />
 
-        <hr class="my-3">
+          <hr class="my-3">
+        </template>
 
         <div
           class="d-flex justify-content-between align-items-center"
@@ -72,7 +75,7 @@
             :disabled="processing"
             @click="onReset"
           >
-            {{ $t('recordList.bulkRecord.reset') }}
+            {{ $t('general:label.reset') }}
           </b-button>
 
           <div class="d-flex gap-1">
@@ -81,7 +84,7 @@
               rounded
               @click="onModalHide"
             >
-              {{ $t('general.label.cancel') }}
+              {{ $t('general:label.cancel') }}
             </b-button>
 
             <b-button
@@ -89,7 +92,7 @@
               :disabled="!fields.length || processing"
               @click="handleBulkUpdateSelectedRecords(query)"
             >
-              {{ $t('general.label.save') }}
+              {{ $t('general:label.save') }}
             </b-button>
           </div>
         </div>
@@ -152,6 +155,11 @@ export default {
     query: {
       type: String,
       default: '',
+    },
+
+    allowAddField: {
+      type: Boolean,
+      default: false,
     },
   },
 
@@ -233,7 +241,7 @@ export default {
 
     onReset () {
       this.record = new compose.Record(this.module, this.initialRecord)
-      this.fields = []
+      this.fields = this.selectedFields
     },
 
     getField (fieldName) {

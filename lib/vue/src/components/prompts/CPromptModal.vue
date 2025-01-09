@@ -11,34 +11,36 @@
     @hide="deactivate()"
   >
     <component
-      v-if="current"
       :is="current.component"
+      v-if="current"
       :payload="current.prompt.payload"
       :loading="isLoading"
       @submit="resume({ input: $event, prompt: current.prompt })"
     />
+
     <div
       v-else
     >
-        <div
-          class="d-flex flex-grow-1 align-items-baseline mb-2"
-          v-for="({ key, title, age, prompt }) in list"
-          :key="key"
+      <div
+        v-for="({ key, title, age, prompt }) in list"
+        :key="key"
+        class="d-flex flex-grow-1 align-items-baseline mb-2"
+      >
+        <a
+          class="p-0 mr-auto"
+          @click="activate(prompt)"
         >
-          <a
-            class="p-0 mr-auto"
-            @click="activate(prompt)"
+          {{ title }} -
+          <time
+            class="muted small"
+            :datetime="prompt.createdAt"
           >
-            {{ title }} -
-            <time
-              class="muted small"
-              :datetime="prompt.createdAt"
-            >
-              {{ age }}
-            </time>
-          </a>
-        </div>
+            {{ age }}
+          </time>
+        </a>
+      </div>
     </div>
+
     <template
       v-if="current"
       #modal-footer
@@ -60,7 +62,7 @@ import { pVal } from './utils.ts'
 import moment from 'moment'
 
 export default {
-  name: 'c-prompt-modal',
+  name: 'CPromptModal',
   computed: {
     ...mapGetters({
       isLoading: 'wfPrompts/isLoading',
@@ -102,7 +104,7 @@ export default {
       }
 
       return this.list.find(({ prompt }) => prompt.stateID === c.stateID)
-    }
+    },
   },
 
   methods: {
@@ -116,6 +118,6 @@ export default {
     clear () {
       this.deactivate()
     },
-  }
+  },
 }
 </script>
