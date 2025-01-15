@@ -123,12 +123,12 @@
         </b-row>
 
         <div
-          v-if="drillDownFilter || options.showDeletedRecordsOption || groupRecordListFilter.length"
+          v-if="options.showDeletedRecordsOption || groupRecordListFilter.length"
           class="d-flex align-items-start gap-1"
         >
           <div
             v-if="groupRecordListFilter.length"
-            class="d-flex flex-wrap gap-2"
+            class="d-flex align-items-center flex-wrap gap-2"
           >
             <div
               v-for="(filterGroup, groupIdx) in groupRecordListFilter"
@@ -229,6 +229,16 @@
                 {{ $t('recordList.filter.conditions.or') }}
               </span>
             </div>
+
+            <b-button
+              v-if="groupRecordListFilter.length"
+              variant="outline-extra-light"
+              size="sm"
+              class="text-primary border-0 text-nowrap"
+              @click="resetFilter()"
+            >
+              {{ $t('recordList.filter.reset') }}
+            </b-button>
           </div>
 
           <b-button
@@ -461,7 +471,8 @@
 
                 <div
                   v-else-if="field.moduleField.canReadRecordValue && !field.edit"
-                  class="d-flex mb-0"
+                  class="d-flex mb-0 gap-1"
+                  style="min-width: 10rem;"
                 >
                   <field-viewer
                     :field="field.moduleField"
@@ -472,25 +483,30 @@
                     :extra-options="options"
                     include-styles
                   />
-                  <div class="d-flex flex-nowrap align-items-start inline-actions">
+
+                  <div
+                    v-if="showInlineActions(field)"
+                    class="d-flex flex-nowrap align-items-start gap-1 inline-actions"
+                  >
                     <b-button
-                      v-if="options.inlineRecordEditEnabled && field.canEdit && !showingDeletedRecords"
+                      v-if="showInlineEdit(field)"
                       v-b-tooltip.noninteractive.hover="{ title: $t('recordList.inlineEdit.button.title'), container: '#body' }"
                       variant="outline-extra-light"
                       size="sm"
-                      class="text-secondary border-0 ml-1"
+                      class="text-secondary border-0"
                       @click.stop="editInlineField(item.r, field.key)"
                     >
                       <font-awesome-icon
                         :icon="['fas', 'pen']"
                       />
                     </b-button>
+
                     <b-button
-                      v-if="options.inlineValueFiltering"
+                      v-if="showInlineFilter()"
                       v-b-tooltip.noninteractive.hover="{ title: $t('recordList.filterByValue'), container: '#body' }"
                       variant="outline-extra-light"
                       size="sm"
-                      class="text-secondary border-0 ml-1"
+                      class="text-secondary border-0"
                       @click.stop="filterByValue(item.r, field)"
                     >
                       <font-awesome-icon
@@ -892,7 +908,6 @@ export default {
       // prefilter from block config
       prefilter: undefined,
       recordListFilter: [],
-      drillDownFilter: undefined,
 
       // raw query string used to build final filter
       query: null,
@@ -1143,50 +1158,42 @@ export default {
     },
 
     groupRecordListFilter () {
-      let groupedData = []
-
-      const recordListFilter = this.recordListFilter
-
-      for (let i = 0; i < recordListFilter.length; i++) {
-        const group = this.recordListFilter[i]
-        const groupFilter = {
-          filter: group.filter
-            .map(f => {
-              return this.createDefaultFilter(f.condition, { name: f.name, kind: f.kind, isMulti: f.isMulti }, f.value, f.operator)
-            }),
-          groupCondition: recordListFilter.length && recordListFilter.length - 1 !== i ? 'AND' : undefined,
-        }
-        groupFilter.filter = groupFilter.filter.sort((a, b) => a.name.localeCompare(b.name))
-
-        const grouped = {}
-
-        groupFilter.filter.forEach(filter => {
-          if (!grouped[filter.name]) {
-            grouped[filter.name] = []
+      return this.recordListFilter
+        .map((group, index) => {
+          // Create filter group with mapped and sorted filters
+          const groupFilter = {
+            filter: group.filter
+              .map(f => this.createDefaultFilter(
+                f.condition,
+                { name: f.name, kind: f.kind, isMulti: f.isMulti },
+                f.value,
+                f.operator
+              ))
+              .sort((a, b) => a.name.localeCompare(b.name)),
+            groupCondition: index < this.recordListFilter.length - 1 ? 'OR' : undefined,
           }
-          grouped[filter.name].push(filter)
-        })
 
-        groupFilter.filter = []
-
-        Object.keys(grouped).forEach((key, index) => {
-          const group = grouped[key]
-          group.forEach((filter, idx) => {
-            if (idx === 0) {
-              filter.condition = index === 0 ? 'Where' : 'AND'
-            } else {
-              filter.condition = 'OR'
+          // Group filters by name
+          const filtersByName = groupFilter.filter.reduce((acc, filter) => {
+            if (!acc[filter.name]) {
+              acc[filter.name] = []
             }
-            groupFilter.filter.push(filter)
-          })
-        })
 
-        groupedData.push(groupFilter)
-      }
+            acc[filter.name].push(filter)
 
-      groupedData = groupedData.filter(({ filter }) => filter.length)
+            return acc
+          }, {})
 
-      return groupedData
+          // Rebuild filter array with proper conditions
+          groupFilter.filter = Object.entries(filtersByName).flatMap(([_, filters], groupIndex) =>
+            filters.map((filter, idx) => ({
+              ...filter,
+              condition: idx === 0 ? (groupIndex === 0 ? 'Where' : 'AND') : 'OR',
+            }))
+          )
+
+          return groupFilter
+        }).filter(({ filter }) => filter.length)
     },
   },
 
@@ -1304,6 +1311,10 @@ export default {
 
       this.showCustomPresetFilterModal = true
       this.refresh(true)
+    },
+
+    resetFilter () {
+      this.onFilter()
     },
 
     onUpdateFields (fields = []) {
@@ -1788,7 +1799,7 @@ export default {
       this.selected = []
 
       // Compute query based on query, prefilter and recordListFilter
-      const query = queryToFilter(this.query, this.drillDownFilter || this.prefilter, this.fields.map(({ moduleField }) => moduleField), this.groupRecordListFilter)
+      const query = queryToFilter(this.query, this.prefilter, this.fields.map(({ moduleField }) => moduleField), this.groupRecordListFilter)
 
       const { moduleID, namespaceID } = this.recordListModule
 
@@ -1988,30 +1999,34 @@ export default {
     },
 
     setDrillDownFilter ({ prefilter: drillDownFilter, name: fieldName, value: fieldValue }) {
+      let recordListFilter = this.recordListFilter
+
       if (drillDownFilter) {
         const field = (this.recordListModule.fields.find(f => f.name === fieldName) || {})
 
-        if (!this.recordListFilter.length) {
-          this.recordListFilter = [
+        if (!recordListFilter.length) {
+          recordListFilter = [
             {
               groupCondition: undefined,
               filter: [
-                this.createDefaultFilter('Where', field, fieldValue, true),
+                this.createDefaultFilter('Where', field, fieldValue, '='),
               ],
             },
           ]
         } else {
           // move to a separate func.
-          const { filter } = this.recordListFilter[0]
+          const { filter } = recordListFilter[0]
+
           if (!filter.length || (filter.length && !filter[0].name)) {
-            this.recordListFilter[0].filter = []
-            this.recordListFilter[0].filter.push(this.createDefaultFilter('Where', field, fieldValue))
+            recordListFilter[0].filter = []
+            recordListFilter[0].filter.push(this.createDefaultFilter('Where', field, fieldValue))
           } else {
-            this.recordListFilter[0].filter.push(this.createDefaultFilter('OR', field, fieldValue))
+            recordListFilter[0].filter.push(this.createDefaultFilter('OR', field, fieldValue))
           }
         }
+
+        this.onFilter(recordListFilter)
       }
-      this.pullRecords(true)
     },
 
     isInlineRestoreActionVisible ({ deletedAt }) {
@@ -2096,6 +2111,18 @@ export default {
       this.pullRecords(true)
     },
 
+    showInlineActions (field) {
+      return this.showInlineEdit(field) || this.showInlineFilter(field)
+    },
+
+    showInlineEdit (field) {
+      return this.options.inlineRecordEditEnabled && field.canEdit && !this.showingDeletedRecords
+    },
+
+    showInlineFilter () {
+      return this.options.filterPresets.length > 0
+    },
+
     onInlineEditClose () {
       this.inlineEdit.fields = []
       this.inlineEdit.record = {}
@@ -2164,7 +2191,6 @@ export default {
       this.processing = false
       this.prefilter = undefined
       this.recordListFilter = []
-      this.drillDownFilter = undefined
       this.query = null
       this.filter = {}
       this.pagination = {}

@@ -117,11 +117,9 @@
           <b-td
             colspan="100%"
             class="p-0 justify-content-center"
-            :class="{ 'pb-3': filterGroup.groupCondition }"
+            :class="{ 'pb-2': filterGroup.groupCondition }"
           >
             <div class="group-separator">
-              <div style="height: 20px; width: 100%;" />
-
               <b-button
                 v-if="groupIndex === (value.length - 1)"
                 variant="outline-primary"
@@ -133,6 +131,13 @@
                   class="mb-0 h6"
                 />
               </b-button>
+
+              <div
+                v-else
+                class="d-flex align-items-center p-2 bg-white text-secondary"
+              >
+                {{ $t('recordList.filter.conditions.or') }}
+              </div>
             </div>
           </b-td>
         </b-tr>
@@ -476,6 +481,9 @@ export default {
 
 <style lang="scss" scoped>
 .group-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background-image: linear-gradient(to left, lightgray, lightgray);
   background-repeat: no-repeat;
   background-size: 100% 1px;

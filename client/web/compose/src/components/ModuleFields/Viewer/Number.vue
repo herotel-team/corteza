@@ -1,5 +1,5 @@
 <template>
-  <div class="w-100">
+  <div>
     <!-- Extra empty line is added thanks to white-space: pre-line (multivalue) if we write div in multiple lines  -->
     <!-- eslint-disable-next-line -->
     <div v-if="field.options.display === 'number'" :class="classes">{{ formatted }}</div>

@@ -440,6 +440,7 @@ recordList:
     where: Where
     without: Without
     presets: Filter presets
+    reset: Reset Filter
     filters:
       label: Filters
       active: 'Active filters:'

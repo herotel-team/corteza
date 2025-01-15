@@ -9,6 +9,7 @@ export function getRecordListFilterSql (filter) {
   let query = ''
 
   let existsPreviousElement = false
+
   filter.forEach(f => {
     if (f.name && f.operator) {
       if (existsPreviousElement) {
@@ -23,6 +24,17 @@ export function getRecordListFilterSql (filter) {
       }
     }
   })
+
+  // Clean up query by grouping OR conditions and trimming whitespace
+  // Split query into AND parts, wrap any OR conditions in parentheses,
+  // trim whitespace from each part, then rejoin with AND
+  query = query.split(' AND ').map(q => {
+    if (q.includes('OR')) {
+      return `(${q.trim()})`
+    }
+
+    return q.trim()
+  }).join(' AND ')
 
   return query ? `(${query})` : query
 }
