@@ -1,8 +1,8 @@
 <template>
   <vue-select
-    v-model="_value"
     v-bind="$attrs"
     ref="vueSelect"
+    v-model="_value"
     data-test-id="select"
     :clearable="clearable"
     :options="options"
@@ -19,12 +19,54 @@
   >
     <template
       v-for="(_, name) in $scopedSlots"
-      v-slot:[name]="data"
+      #[name]="data"
     >
       <slot
         :name="name"
         v-bind="data"
       />
+    </template>
+
+    <template
+      v-if="badge"
+      #option="option"
+    >
+      <span
+        class="badge badge-pill"
+        :style="getOptionStyle(option)"
+      >
+        {{ option.text }}
+      </span>
+    </template>
+
+    <template
+      v-if="!multiple && badge"
+      #selected-option="option"
+    >
+      <span
+        class="badge badge-pill"
+        :style="getOptionStyle(option)"
+      >
+        {{ option.text }}
+      </span>
+    </template>
+
+    <template
+      v-if="multiple && badge"
+      #selected-option-container="{ option, deselect }"
+    >
+      <span
+        class="d-flex align-items-center badge badge-pill mx-1 mt-1 w-auto"
+        :style="getOptionStyle(option)"
+      >
+        {{ option.text }}
+
+        <font-awesome-icon
+          :icon="['fas', 'times']"
+          class="pointer ml-2"
+          @click="deselect(option)"
+        />
+      </span>
     </template>
   </vue-select>
 </template>
@@ -98,6 +140,11 @@ export default {
       type: Boolean,
       default: false,
     },
+
+    badge: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   data () {
@@ -115,7 +162,7 @@ export default {
 
       set (v) {
         this.$emit('input', !v ? this.defaultValue : v)
-      }
+      },
     },
 
     sizeClass () {
@@ -181,6 +228,16 @@ export default {
       }
 
       this.$emit('search', query, loading)
+    },
+
+    getOptionStyle ({ style = {} } = {}) {
+      if (this.badge) {
+        style.fontSize = '0.9rem'
+        style.color = style.textColor || 'var(--dark)'
+        style.backgroundColor = style.backgroundColor || 'var(--extra-light)'
+      }
+
+      return style
     },
   },
 }
@@ -318,9 +375,8 @@ export default {
     }
 
     &.vs__dropdown-option--disabled {
-      background: var(--vs-state-disabled-bg) !important;
-      color: var(--vs-state-disabled-color) !important;
       cursor: var(--vs-state-disabled-cursor) !important;
+      opacity: 0.5;
     }
 
     &:active {

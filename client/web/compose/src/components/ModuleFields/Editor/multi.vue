@@ -15,7 +15,7 @@
       <div
         v-for="(v, index) of val"
         :key="index"
-        class="d-flex w-100 align-items-center mb-1 px-2"
+        class="d-flex w-100 align-items-center mb-2 px-1"
       >
         <font-awesome-icon
           v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.dragAndDrop'), container: '#body' }"

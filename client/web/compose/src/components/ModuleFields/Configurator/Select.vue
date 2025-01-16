@@ -26,6 +26,17 @@
       </b-form-group>
 
       <b-form-group
+        :label="$t('kind.select.displayType.label')"
+        label-class="text-primary"
+      >
+        <b-form-radio-group
+          v-model="f.options.displayType"
+          :options="displayOptions"
+          stacked
+        />
+      </b-form-group>
+
+      <b-form-group
         :label="$t('kind.select.optionsLabel')"
         label-class="text-primary"
       >
@@ -36,6 +47,7 @@
           <b-table-simple
             borderless
             small
+            responsive
           >
             <b-thead>
               <b-tr>
@@ -45,13 +57,27 @@
                   class="text-primary"
                   style="min-width: 200px;"
                 >
-                  {{ $t('kind.select.optionValuePlaceholder') }}
+                  {{ $t('kind.select.options.value') }}
                 </b-th>
 
                 <b-th
                   class="text-primary"
                 >
-                  {{ $t('kind.select.optionLabelPlaceholder') }}
+                  {{ $t('kind.select.options.label') }}
+                </b-th>
+
+                <b-th
+                  v-if="f.options.displayType === 'badge'"
+                  class="text-primary"
+                >
+                  {{ $t('kind.select.options.style.textColor') }}
+                </b-th>
+
+                <b-th
+                  v-if="f.options.displayType === 'badge'"
+                  class="text-primary"
+                >
+                  {{ $t('kind.select.options.style.backgroundColor') }}
                 </b-th>
 
                 <b-th />
@@ -80,8 +106,7 @@
                   <b-form-input
                     v-model.trim="f.options.options[index].value"
                     plain
-                    size="sm"
-                    :placeholder="$t('kind.select.optionValuePlaceholder')"
+                    :placeholder="$t('kind.select.options.value')"
                     :state="f.options.options[index].value ? null : false"
                   />
                 </b-td>
@@ -92,8 +117,7 @@
                     <b-form-input
                       v-model.trim="f.options.options[index].text"
                       plain
-                      size="sm"
-                      :placeholder="$t('kind.select.optionLabelPlaceholder')"
+                      :placeholder="$t('kind.select.options.label')"
                       :state="f.options.options[index].text ? null : false"
                     />
 
@@ -108,6 +132,39 @@
                       />
                     </b-input-group-append>
                   </b-input-group>
+                </b-td>
+
+                <b-td
+                  v-if="f.options.displayType === 'badge'"
+                  style="min-width: 120px;"
+                >
+                  <c-input-color-picker
+                    v-model="f.options.options[index].style.textColor"
+                    :default-value="defaultTextColor"
+                    :theme-settings="themeSettings"
+                    :translations="{
+                      modalTitle: $t('kind.select.options.style.textColor'),
+                      cancelBtnLabel: $t('general:label.cancel'),
+                      saveBtnLabel: $t('general:label.saveAndClose')
+                    }"
+                  />
+                </b-td>
+
+                <b-td
+                  v-if="f.options.displayType === 'badge'"
+                  style="min-width: 130px;"
+                >
+                  <c-input-color-picker
+                    v-model="f.options.options[index].style.backgroundColor"
+                    :default-value="defaultBackgroundColor"
+                    :theme-settings="themeSettings"
+                    :translations="{
+                      modalTitle: $t('kind.select.options.style.backgroundColor'),
+                      defaultBtnLabel: $t('general:label.default'),
+                      cancelBtnLabel: $t('general:label.cancel'),
+                      saveBtnLabel: $t('general:label.saveAndClose')
+                    }"
+                  />
                 </b-td>
 
                 <b-td class="align-middle text-right">
@@ -130,6 +187,8 @@ import base from './base'
 import Draggable from 'vuedraggable'
 import { NoID } from '@cortezaproject/corteza-js'
 import FieldSelectTranslator from 'corteza-webapp-compose/src/components/Admin/Module/FieldSelectTranslator'
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputColorPicker } = components
 
 export default {
   i18nOptions: {
@@ -139,6 +198,7 @@ export default {
   components: {
     FieldSelectTranslator,
     Draggable,
+    CInputColorPicker,
   },
 
   extends: base,
@@ -147,7 +207,7 @@ export default {
     return {
       newOption: { value: undefined, text: undefined, new: true },
 
-      options: [
+      selectTypes: [
         { text: this.$t('kind.select.optionType.default'), value: 'default', allowDuplicates: true },
         { text: this.$t('kind.select.optionType.multiple'), value: 'multiple', onlyMulti: true },
         { text: this.$t('kind.select.optionType.each'), value: 'each', allowDuplicates: true, onlyMulti: true },
@@ -182,7 +242,7 @@ export default {
     },
 
     selectOptions () {
-      const selectOptions = this.options.map((o) => {
+      const selectOptions = this.selectTypes.map((o) => {
         if (o.value === 'list') {
           o.text = this.$t(`kind.select.optionType.${this.f.isMulti ? 'checkbox' : 'radio'}`)
         }
@@ -197,11 +257,30 @@ export default {
       return selectOptions.filter(({ onlyMulti }) => !onlyMulti)
     },
 
+    displayOptions () {
+      return [
+        { text: this.$t('kind.select.displayType.text'), value: 'text' },
+        { text: this.$t('kind.select.displayType.badge'), value: 'badge' },
+      ]
+    },
+
     shouldAllowDuplicates () {
       if (!this.f.isMulti) return false
 
-      const { allowDuplicates } = this.options.find(({ value }) => value === this.f.options.selectType) || {}
+      const { allowDuplicates } = this.selectTypes.find(({ value }) => value === this.f.options.selectType) || {}
       return !!allowDuplicates
+    },
+
+    themeSettings () {
+      return this.$Settings.get('ui.studio.themes', [])
+    },
+
+    defaultTextColor () {
+      return getComputedStyle(document.documentElement).getPropertyValue('--dark')
+    },
+
+    defaultBackgroundColor () {
+      return getComputedStyle(document.documentElement).getPropertyValue('--extra-light')
     },
   },
 
@@ -219,15 +298,14 @@ export default {
 
   methods: {
     handleAddOption () {
-      this.f.options.options.push({
-        value: undefined,
-        text: undefined,
-        new: true,
-      })
+      const option = this.f.createSelectOption()
+      option.new = true
+
+      this.f.options.options.push(option)
     },
 
     updateIsUniqueMultiValue (value) {
-      const { allowDuplicates = false } = this.options.find(({ value: v }) => v === value) || {}
+      const { allowDuplicates = false } = this.selectTypes.find(({ value: v }) => v === value) || {}
       if (!allowDuplicates) {
         this.f.options.isUniqueMultiValue = true
       }
@@ -235,7 +313,7 @@ export default {
 
     setDefaultValues () {
       this.newOption = {}
-      this.options = []
+      this.selectTypes = []
     },
   },
 }

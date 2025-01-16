@@ -134,7 +134,12 @@ kind:
     allow-duplicates: Allow duplicates
     label: Select
     optionAdd: Add
-    optionLabelPlaceholder: Label
+    options:
+      value: Value
+      label: Label
+      style:
+        textColor: Text color
+        backgroundColor: Background color
     optionNotSelected: No option selected
     optionRemove: Remove
     optionType:
@@ -144,8 +149,12 @@ kind:
       multiple: Multiple select
       checkbox: Checkbox Group
       radio: Radio Group
-    optionValuePlaceholder: Value
+    displayType:
+      label: Display value as
+      text: Text
+      badge: Badge
     optionsLabel: Options to select from
+    showAsBadge: Show as badge
     placeholder: Select an option by clicking here
   string:
     label: String

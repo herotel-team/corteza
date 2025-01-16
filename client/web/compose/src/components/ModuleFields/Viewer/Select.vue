@@ -1,15 +1,26 @@
+<template>
+  <div>
+    <span
+      v-for="(v, index) of value"
+      :key="index"
+      :class="{ 'd-block mb-2': field.options.multiDelimiter === '\n' }"
+    >
+      <span
+        :class="{ 'badge badge-pill': field.options.displayType === 'badge' }"
+        :style="v.style"
+      >
+        {{ v.text }}
+      </span>
+
+      {{ index !== value.length - 1 ? field.options.multiDelimiter : '' }}
+    </span>
+
+    <errors :errors="errors" />
+  </div>
+</template>
+
 <script>
 import base from './base'
-
-/**
- * Helper to find a label for the given value
- * @param {String} v Value in question
- * @param {Array<Object>} options Available options
- * @returns {String|undefined}
- */
-function findLabel (v, options) {
-  return (options.find(({ value }) => value === v) || {}).text
-}
 
 export default {
   extends: base,
@@ -31,10 +42,33 @@ export default {
           v = []
         }
 
-        return v.map(v => findLabel(v, this.field.options.options) || v)
+        return v.map(v => this.resolveValue(v) || v).filter(Boolean)
       } else {
-        return findLabel(v, this.field.options.options) || v
+        return [this.resolveValue(v) || v].filter(Boolean)
       }
+    },
+  },
+
+  methods: {
+    resolveValue (v) {
+      const opt = this.field.options.options.find(({ value }) => value === v) || { text: v }
+
+      return {
+        text: opt.text,
+        style: this.getOptionStyle(opt),
+      }
+    },
+
+    getOptionStyle (opt) {
+      const style = {}
+
+      if (this.field.options.displayType === 'badge') {
+        style.fontSize = '0.9rem'
+        style.color = opt.style.textColor || 'var(--dark)'
+        style.backgroundColor = opt.style.backgroundColor || 'var(--extra-light)'
+      }
+
+      return style
     },
   },
 }

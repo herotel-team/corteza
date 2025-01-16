@@ -181,6 +181,10 @@ export default {
           label: 'White',
         },
         {
+          key: 'black',
+          label: 'Black',
+        },
+        {
           key: 'primary',
           label: 'Primary',
         },
@@ -237,6 +241,10 @@ export default {
       immediate: true,
       handler (value) {
         this.currentColor = value
+
+        if (!value && this.defaultValue) {
+          this.$emit('input', this.defaultValue)
+        }
       },
     },
   },

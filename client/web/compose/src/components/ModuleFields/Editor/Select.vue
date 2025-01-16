@@ -34,11 +34,23 @@
 
     <template v-if="field.isMulti">
       <template v-if="field.options.selectType === 'list'">
-        <b-form-checkbox-group
-          v-model="value"
-          :options="selectOptions"
-          stacked
-        />
+        <div>
+          <b-form-checkbox
+            v-for="option in selectOptions"
+            :key="option.value"
+            v-model="value"
+            :value="option.value"
+            class="d-block mb-1"
+          >
+            <span
+              class="pointer"
+              :class="{ 'badge badge-pill': field.options.displayType === 'badge' }"
+              :style="getOptionStyle(option.value)"
+            >
+              {{ option.text }}
+            </span>
+          </b-form-checkbox>
+        </div>
 
         <errors :errors="errors" />
       </template>
@@ -58,6 +70,7 @@
             :reduce="o => o.value"
             :selectable="isSelectable"
             label="text"
+            :badge="field.options.displayType === 'badge'"
             @input="selectChange"
           />
 
@@ -70,6 +83,7 @@
             :selectable="isSelectable"
             label="text"
             multiple
+            :badge="field.options.displayType === 'badge'"
           />
         </template>
 
@@ -82,10 +96,17 @@
             :placeholder="$t('kind.select.placeholder')"
             :selectable="isSelectable"
             label="text"
+            :badge="field.options.displayType === 'badge'"
             @input="setMultiValue($event, ctx.index)"
           />
 
-          <span v-else>{{ findLabel(value[ctx.index]) }}</span>
+          <span
+            v-else
+            :class="{ 'badge badge-pill': field.options.displayType === 'badge' }"
+            :style="getOptionStyle(value[ctx.index])"
+          >
+            {{ findLabel(value[ctx.index]) }}
+          </span>
         </template>
       </multi>
     </template>
@@ -101,6 +122,7 @@
         :reduce="o => o.value"
         :selectable="isSelectable"
         label="text"
+        :badge="field.options.displayType === 'badge'"
       />
 
       <b-form-radio-group
@@ -154,6 +176,20 @@ export default {
       } else {
         return this.value !== value
       }
+    },
+
+    getOptionStyle (v) {
+      const style = {}
+
+      if (this.field.options.displayType === 'badge') {
+        const opt = this.selectOptions.find(({ value }) => value === v) || { style: {} }
+
+        style.fontSize = '0.9rem'
+        style.color = opt.style.textColor || 'var(--dark)'
+        style.backgroundColor = opt.style.backgroundColor || 'var(--extra-light)'
+      }
+
+      return style
     },
   },
 }
