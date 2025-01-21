@@ -112,6 +112,312 @@ func TestPullRules(t *testing.T) {
 	req.Equal(uint64(1), ruleS.searches[2].RoleID)
 }
 
+func TestGetMatchingRule_pureIndex(t *testing.T) {
+	req := require.New(t)
+
+	stt := evaluationState{
+		res: "res/1/2/3",
+		op:  "read",
+
+		unindexedRoles: partRoles{CommonRole: map[uint64]bool{}},
+		indexedRoles:   partRoles{CommonRole: map[uint64]bool{1: true}},
+		unindexedRules: [5]map[uint64][]*Rule{},
+	}
+
+	t.Run("1", func(t *testing.T) {
+		wx := &Service{
+			index: &wrapperIndex{},
+		}
+
+		wx.index.add(1, "res/1/2/3", &Rule{
+			RoleID:    1,
+			Resource:  "res/1/*/*",
+			Operation: "read",
+			Access:    Deny,
+		}, &Rule{
+			RoleID:    1,
+			Resource:  "res/1/2/3",
+			Operation: "read",
+			Access:    Inherit,
+		}, &Rule{
+			RoleID:    1,
+			Resource:  "res/1/2/*",
+			Operation: "read",
+			Access:    Allow,
+		})
+
+		auxRule := wx.getMatchingRule(stt, CommonRole, 1)
+		req.Equal("res/1/2/*", auxRule.Resource)
+		req.Equal(Allow, auxRule.Access)
+	})
+
+	t.Run("2", func(t *testing.T) {
+		wx := &Service{
+			index: &wrapperIndex{},
+		}
+
+		wx.index.add(1, "res/1/2/3", &Rule{
+			RoleID:    1,
+			Resource:  "res/1/*/*",
+			Operation: "read",
+			Access:    Deny,
+		}, &Rule{
+			RoleID:    1,
+			Resource:  "res/1/2/3",
+			Operation: "read",
+			Access:    Deny,
+		}, &Rule{
+			RoleID:    1,
+			Resource:  "res/1/2/*",
+			Operation: "read",
+			Access:    Deny,
+		})
+
+		auxRule := wx.getMatchingRule(stt, CommonRole, 1)
+		req.Equal("res/1/2/3", auxRule.Resource)
+		req.Equal(Deny, auxRule.Access)
+	})
+
+	t.Run("3", func(t *testing.T) {
+		wx := &Service{
+			index: &wrapperIndex{},
+		}
+
+		wx.index.add(1, "res/1/2/3", &Rule{
+			RoleID:    1,
+			Resource:  "res/1/*/*",
+			Operation: "read",
+			Access:    Inherit,
+		}, &Rule{
+			RoleID:    1,
+			Resource:  "res/*/*/*",
+			Operation: "read",
+			Access:    Inherit,
+		}, &Rule{
+			RoleID:    1,
+			Resource:  "res/1/2/3",
+			Operation: "read",
+			Access:    Inherit,
+		}, &Rule{
+			RoleID:    1,
+			Resource:  "res/1/2/*",
+			Operation: "read",
+			Access:    Inherit,
+		})
+
+		auxRule := wx.getMatchingRule(stt, CommonRole, 1)
+		req.Nil(auxRule)
+	})
+}
+
+func TestGetMatchingRule_pureStored(t *testing.T) {
+	req := require.New(t)
+
+	stt := evaluationState{
+		res: "res/1/2/3",
+		op:  "read",
+
+		unindexedRoles: partRoles{CommonRole: map[uint64]bool{1: true}},
+		indexedRoles:   partRoles{CommonRole: map[uint64]bool{}},
+		unindexedRules: [5]map[uint64][]*Rule{},
+	}
+
+	t.Run("1", func(t *testing.T) {
+		wx := &Service{
+			index: &wrapperIndex{},
+		}
+
+		stt.unindexedRules = [5]map[uint64][]*Rule{CommonRole: {
+			1: {&Rule{
+				RoleID:    1,
+				Resource:  "res/1/*/*",
+				Operation: "read",
+				Access:    Deny,
+			}, &Rule{
+				RoleID:    1,
+				Resource:  "res/1/2/3",
+				Operation: "read",
+				Access:    Inherit,
+			}, &Rule{
+				RoleID:    1,
+				Resource:  "res/1/2/*",
+				Operation: "read",
+				Access:    Allow,
+			}},
+		}}
+
+		auxRule := wx.getMatchingRule(stt, CommonRole, 1)
+		req.Equal("res/1/2/*", auxRule.Resource)
+		req.Equal(Allow, auxRule.Access)
+	})
+
+	t.Run("2", func(t *testing.T) {
+		wx := &Service{
+			index: &wrapperIndex{},
+		}
+
+		stt.unindexedRules = [5]map[uint64][]*Rule{CommonRole: {
+			1: {&Rule{
+				RoleID:    1,
+				Resource:  "res/1/*/*",
+				Operation: "read",
+				Access:    Deny,
+			}, &Rule{
+				RoleID:    1,
+				Resource:  "res/1/2/3",
+				Operation: "read",
+				Access:    Deny,
+			}, &Rule{
+				RoleID:    1,
+				Resource:  "res/1/2/*",
+				Operation: "read",
+				Access:    Deny,
+			}},
+		}}
+
+		auxRule := wx.getMatchingRule(stt, CommonRole, 1)
+		req.Equal("res/1/2/3", auxRule.Resource)
+		req.Equal(Deny, auxRule.Access)
+	})
+
+	t.Run("3", func(t *testing.T) {
+		wx := &Service{
+			index: &wrapperIndex{},
+		}
+
+		stt.unindexedRules = [5]map[uint64][]*Rule{CommonRole: {
+			3: {&Rule{
+				RoleID:    1,
+				Resource:  "res/1/*/*",
+				Operation: "read",
+				Access:    Inherit,
+			}, &Rule{
+				RoleID:    1,
+				Resource:  "res/*/*/*",
+				Operation: "read",
+				Access:    Inherit,
+			}, &Rule{
+				RoleID:    1,
+				Resource:  "res/1/2/3",
+				Operation: "read",
+				Access:    Inherit,
+			}, &Rule{
+				RoleID:    1,
+				Resource:  "res/1/2/*",
+				Operation: "read",
+				Access:    Inherit,
+			}},
+		}}
+
+		auxRule := wx.getMatchingRule(stt, CommonRole, 1)
+		req.Nil(auxRule)
+	})
+}
+
+func TestGetMatchingRule_mixed(t *testing.T) {
+	req := require.New(t)
+
+	stt := evaluationState{
+		res: "res/1/2/3",
+		op:  "read",
+
+		unindexedRoles: partRoles{CommonRole: map[uint64]bool{1: true}},
+		indexedRoles:   partRoles{CommonRole: map[uint64]bool{}},
+		unindexedRules: [5]map[uint64][]*Rule{},
+	}
+
+	t.Run("1", func(t *testing.T) {
+		wx := &Service{
+			index: &wrapperIndex{},
+		}
+
+		stt.unindexedRules = [5]map[uint64][]*Rule{CommonRole: {
+			1: {&Rule{
+				RoleID:    1,
+				Resource:  "res/1/*/*",
+				Operation: "read",
+				Access:    Deny,
+			}, &Rule{
+				RoleID:    1,
+				Resource:  "res/1/2/3",
+				Operation: "read",
+				Access:    Inherit,
+			}, &Rule{
+				RoleID:    1,
+				Resource:  "res/1/2/*",
+				Operation: "read",
+				Access:    Allow,
+			}},
+		}}
+
+		auxRule := wx.getMatchingRule(stt, CommonRole, 1)
+		req.Equal("res/1/2/*", auxRule.Resource)
+		req.Equal(Allow, auxRule.Access)
+	})
+
+	t.Run("2", func(t *testing.T) {
+		wx := &Service{
+			index: &wrapperIndex{},
+		}
+
+		stt.unindexedRules = [5]map[uint64][]*Rule{CommonRole: {
+			1: {&Rule{
+				RoleID:    1,
+				Resource:  "res/1/*/*",
+				Operation: "read",
+				Access:    Deny,
+			}, &Rule{
+				RoleID:    1,
+				Resource:  "res/1/2/3",
+				Operation: "read",
+				Access:    Deny,
+			}, &Rule{
+				RoleID:    1,
+				Resource:  "res/1/2/*",
+				Operation: "read",
+				Access:    Deny,
+			}},
+		}}
+
+		auxRule := wx.getMatchingRule(stt, CommonRole, 1)
+		req.Equal("res/1/2/3", auxRule.Resource)
+		req.Equal(Deny, auxRule.Access)
+	})
+
+	t.Run("3", func(t *testing.T) {
+		wx := &Service{
+			index: &wrapperIndex{},
+		}
+
+		stt.unindexedRules = [5]map[uint64][]*Rule{CommonRole: {
+			3: {&Rule{
+				RoleID:    1,
+				Resource:  "res/1/*/*",
+				Operation: "read",
+				Access:    Inherit,
+			}, &Rule{
+				RoleID:    1,
+				Resource:  "res/*/*/*",
+				Operation: "read",
+				Access:    Inherit,
+			}, &Rule{
+				RoleID:    1,
+				Resource:  "res/1/2/3",
+				Operation: "read",
+				Access:    Inherit,
+			}, &Rule{
+				RoleID:    1,
+				Resource:  "res/1/2/*",
+				Operation: "read",
+				Access:    Inherit,
+			}},
+		}}
+
+		auxRule := wx.getMatchingRule(stt, CommonRole, 1)
+		req.Nil(auxRule)
+	})
+}
+
 func TestCombiningSources(t *testing.T) {
 	req := require.New(t)
 	wx := &Service{

@@ -400,7 +400,11 @@ func (svc *Service) Grant(ctx context.Context, rules ...*Rule) (err error) {
 		}
 
 		// If it is, we need to assure this thing is inside the index now
-		svc.index.add(r.RoleID, r.Resource, r)
+		if !svc.index.add(r.RoleID, r.Resource, r) {
+			// Don't hit cache update in case nothing happened
+			continue
+		}
+
 		svc.StatLogger.CacheUpdate(r)
 	}
 	svc.mux.Unlock()
@@ -710,9 +714,6 @@ func (svc *Service) flush(ctx context.Context, rules ...*Rule) (err error) {
 }
 
 func (svc *Service) pullUnindexed(ctx context.Context, unindexed partRoles, op, res string) (out [5]map[uint64][]*Rule, timing time.Duration, err error) {
-	resPerm := make([]string, 0, 8)
-	resPerm = append(resPerm, res)
-
 	// Get all the resource permissions
 	// @todo get permissions for parent resources; this will probs be some lookup table
 	now := time.Now()
@@ -720,11 +721,7 @@ func (svc *Service) pullUnindexed(ctx context.Context, unindexed partRoles, op, 
 		timing = time.Since(now)
 	}()
 
-	rr := strings.Split(res, "/")
-	for i := len(rr) - 1; i >= 0; i-- {
-		rr[i] = "*"
-		resPerm = append(resPerm, strings.Join(rr, "/"))
-	}
+	resPerm := permuteResource(res)
 
 	for rk, rr := range unindexed {
 		for r := range rr {
@@ -763,16 +760,7 @@ func (svc *Service) pullForRole(ctx context.Context, roleID uint64) (out []*Rule
 }
 
 func (svc *Service) pullRules(ctx context.Context, role uint64, resource string) (rules []*Rule, err error) {
-	resPerm := make([]string, 0, 8)
-	resPerm = append(resPerm, resource)
-
-	// Get all the resource permissions
-	// @todo get permissions for parent resources; this will probs be some lookup table
-	rr := strings.Split(resource, "/")
-	for i := len(rr) - 1; i > 0; i-- {
-		rr[i] = "*"
-		resPerm = append(resPerm, strings.Join(rr, "/"))
-	}
+	resPerm := permuteResource(resource)
 
 	var aux RuleSet
 	aux, _, err = svc.RuleStorage.SearchRbacRules(ctx, RuleFilter{
