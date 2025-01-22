@@ -161,6 +161,48 @@ func TestIndexBuild(t *testing.T) {
 	}
 }
 
+func TestIndexUpsert(t *testing.T) {
+	var (
+		ix  = &ruleIndex{}
+		req = require.New(t)
+	)
+
+	t.Run("add specific item", func(t *testing.T) {
+		ix.add(&Rule{
+			RoleID:    1,
+			Resource:  "corteza::compose:namespace/5",
+			Operation: "read",
+			Access:    Allow,
+		})
+
+		req.Equal(Allow, ix.children[1].children["read"].children["corteza::compose:namespace"].children["5"].access)
+	})
+
+	t.Run("add wildcard item", func(t *testing.T) {
+		ix.add(&Rule{
+			RoleID:    1,
+			Resource:  "corteza::compose:namespace/*",
+			Operation: "read",
+			Access:    Deny,
+		})
+
+		req.Equal(Allow, ix.children[1].children["read"].children["corteza::compose:namespace"].children["5"].access)
+		req.Equal(Deny, ix.children[1].children["read"].children["corteza::compose:namespace"].children["*"].access)
+	})
+
+	t.Run("add existing item (update)", func(t *testing.T) {
+		ix.add(&Rule{
+			RoleID:    1,
+			Resource:  "corteza::compose:namespace/*",
+			Operation: "read",
+			Access:    Allow,
+		})
+
+		req.Equal(Allow, ix.children[1].children["read"].children["corteza::compose:namespace"].children["5"].access)
+		req.Equal(Allow, ix.children[1].children["read"].children["corteza::compose:namespace"].children["*"].access)
+	})
+}
+
 func TestIndexHas(t *testing.T) {
 	ix := buildRuleIndex([]*Rule{{
 		RoleID:    1,

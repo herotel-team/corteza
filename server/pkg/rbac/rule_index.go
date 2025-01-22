@@ -41,11 +41,6 @@ func (index *ruleIndex) add(rules ...*Rule) {
 	}
 
 	for _, r := range rules {
-		// skip duplicates
-		if index.has(r) {
-			continue
-		}
-
 		if _, ok := index.children[r.RoleID]; !ok {
 			index.children[r.RoleID] = &ruleIndexNode{
 				children: make(map[string]*ruleIndexNode, 4),
