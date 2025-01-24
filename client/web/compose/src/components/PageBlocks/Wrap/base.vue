@@ -74,6 +74,15 @@ export default {
       return this.magnified && magnifiedBlockID === this.block.blockID
     },
 
+    isAnotherBlockMagnified () {
+      const { magnifiedBlockID } = this.$route.query
+      return magnifiedBlockID && magnifiedBlockID !== this.block.blockID
+    },
+
+    showMagnifyButton () {
+      return (this.block.options.magnifyOption || this.isBlockMagnified) && !this.isAnotherBlockMagnified
+    },
+
     headerSet () {
       return !!this.$scopedSlots.header
     },
@@ -91,8 +100,8 @@ export default {
         this.headerSet,
         this.block.title,
         this.block.description,
-        this.block.options.magnifyOption,
         this.block.options.showRefresh,
+        this.showMagnifyButton,
       ].some(c => !!c)
     },
 
@@ -100,7 +109,7 @@ export default {
       return [
         this.block.options.magnifyOption,
         this.block.options.showRefresh,
-        this.isBlockMagnified,
+        this.showMagnifyButton,
       ].some(c => !!c)
     },
 

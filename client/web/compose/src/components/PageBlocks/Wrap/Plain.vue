@@ -43,7 +43,7 @@
               </b-button>
 
               <b-button
-                v-if="block.options.magnifyOption || isBlockMagnified"
+                v-if="showMagnifyButton"
                 v-b-tooltip.noninteractive.hover="{ title: isBlockMagnified ? '' : $t('general.label.magnify'), container: '#body' }"
                 variant="outline-extra-light"
                 class="d-flex align-items-center text-secondary d-print-none border-0"
