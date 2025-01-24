@@ -3,7 +3,7 @@
     id="record-modal"
     v-model="showModal"
     scrollable
-    dialog-class="h-100 mw-90"
+    :dialog-class="dialogClass"
     content-class="position-initial"
     body-class="p-0"
     footer-class="p-0 overflow-hidden"
@@ -25,7 +25,7 @@
       :values="values"
       :ref-record="refRecord"
       :edit="edit"
-      show-record-modal
+      in-modal
       @handle-record-redirect="loadRecord"
       @on-modal-back="loadRecord"
     />
@@ -85,12 +85,28 @@ export default {
       getPageByID: 'page/getByID',
       recordPaginationUsable: 'ui/recordPaginationUsable',
       modalPreviousPages: 'ui/modalPreviousPages',
+      modalPageHandle: 'ui/modalPageHandle',
+      modalLayoutHandle: 'ui/modalLayoutHandle',
     }),
 
     uniqueID () {
       const { recordPageID, recordID, edit = false } = this.$route.query
       const isEdit = typeof edit === 'string' ? edit === 'true' : Boolean(edit)
       return [recordPageID, recordID, isEdit]
+    },
+
+    dialogClass () {
+      const classes = ['h-100', 'mw-90']
+
+      if (this.modalPageHandle) {
+        classes.push(`page-${this.modalPageHandle}-modal`)
+      }
+
+      if (this.modalLayoutHandle) {
+        classes.push(`layout-${this.modalLayoutHandle}-modal`)
+      }
+
+      return classes.join(' ')
     },
   },
 
@@ -142,6 +158,8 @@ export default {
       clearRecordIDs: 'ui/clearRecordIDs',
       pushModalPreviousPage: 'ui/pushModalPreviousPage',
       clearModalPreviousPage: 'ui/clearModalPreviousPage',
+      setModalPageHandle: 'ui/setModalPageHandle',
+      setModalLayoutHandle: 'ui/setModalLayoutHandle',
     }),
 
     loadRecord ({ recordID, recordPageID, values = this.$route.params.values, refRecord, edit = this.edit, pushModalPreviousPage = true }) {
@@ -180,6 +198,7 @@ export default {
 
         if (!this.page || this.page.pageID !== recordPageID) {
           this.page = this.getPageByID(recordPageID)
+          this.setModalPageHandle(this.page.handle)
         }
 
         if (this.page && (!this.module || this.module.moduleID !== this.page.moduleID)) {
@@ -207,6 +226,9 @@ export default {
             },
           })
         }
+
+        this.setModalPageHandle(undefined)
+        this.setModalLayoutHandle(undefined)
       })
     },
 

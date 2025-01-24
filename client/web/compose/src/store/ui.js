@@ -17,6 +17,11 @@ const types = {
   pushModalPreviousPage: 'pushModalPreviousPage',
   clearModalPreviousPage: 'clearModalPreviousPage',
   popModalPreviousPage: 'popModalPreviousPage',
+  setNamespaceSlug: 'setNamespaceSlug',
+  setPageHandle: 'setPageHandle',
+  setLayoutHandle: 'setLayoutHandle',
+  setModalPageHandle: 'setModalPageHandle',
+  setModalLayoutHandle: 'setModalLayoutHandle',
 }
 
 export default function (ComposeAPI) {
@@ -32,6 +37,13 @@ export default function (ComposeAPI) {
       previousPages: [],
       previousPage: null,
       modalPreviousPages: [],
+
+      namespaceSlug: '',
+      pageHandle: '',
+      layoutHandle: '',
+
+      modalPageHandle: '',
+      modalLayoutHandle: '',
     },
 
     getters: {
@@ -54,6 +66,13 @@ export default function (ComposeAPI) {
       },
 
       modalPreviousPages: (state) => state.modalPreviousPages,
+
+      namespaceSlug: (state) => state.namespaceSlug,
+      pageHandle: (state) => state.pageHandle,
+      layoutHandle: (state) => state.layoutHandle,
+
+      modalPageHandle: (state) => state.modalPageHandle,
+      modalLayoutHandle: (state) => state.modalLayoutHandle,
     },
 
     actions: {
@@ -129,6 +148,26 @@ export default function (ComposeAPI) {
         commit(types.popModalPreviousPage)
         return new Promise((resolve) => resolve(previousPage))
       },
+
+      setNamespaceSlug ({ commit }, value) {
+        commit(types.setNamespaceSlug, value)
+      },
+
+      setPageHandle ({ commit }, value) {
+        commit(types.setPageHandle, value)
+      },
+
+      setLayoutHandle ({ commit }, value) {
+        commit(types.setLayoutHandle, value)
+      },
+
+      setModalPageHandle ({ commit }, value) {
+        commit(types.setModalPageHandle, value)
+      },
+
+      setModalLayoutHandle ({ commit }, value) {
+        commit(types.setModalLayoutHandle, value)
+      },
     },
 
     mutations: {
@@ -186,6 +225,26 @@ export default function (ComposeAPI) {
 
       [types.popModalPreviousPage] (state) {
         state.modalPreviousPages.pop()
+      },
+
+      [types.setNamespaceSlug] (state, value) {
+        state.namespaceSlug = value || ''
+      },
+
+      [types.setPageHandle] (state, value) {
+        state.pageHandle = value || ''
+      },
+
+      [types.setLayoutHandle] (state, value) {
+        state.layoutHandle = value || ''
+      },
+
+      [types.setModalPageHandle] (state, value) {
+        state.modalPageHandle = value || ''
+      },
+
+      [types.setModalLayoutHandle] (state, value) {
+        state.modalLayoutHandle = value || ''
       },
     },
   }

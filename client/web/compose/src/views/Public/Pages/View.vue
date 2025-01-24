@@ -190,9 +190,30 @@ export default {
         }
       },
     },
+
+    'page.handle': {
+      immediate: true,
+      handler (handle, oldHandle) {
+        if (handle !== oldHandle) {
+          this.setPageHandle(handle)
+        }
+      },
+    },
+
+    'layout.handle': {
+      immediate: true,
+      handler (handle, oldHandle) {
+        if (handle !== oldHandle) {
+          this.setLayoutHandle(handle)
+        }
+      },
+    },
   },
 
   beforeDestroy () {
+    this.setPageHandle('')
+    this.setLayoutHandle('')
+
     this.destroyEvents()
     this.setDefaultValues()
   },
@@ -205,6 +226,9 @@ export default {
       setPreviousPages: 'ui/setPreviousPages',
       pushPreviousPages: 'ui/pushPreviousPages',
       clearRecordSet: 'record/clearSet',
+      setPageHandle: 'ui/setPageHandle',
+      setLayoutHandle: 'ui/setLayoutHandle',
+      setRecordPageHandle: 'ui/setRecordPageHandle',
     }),
 
     createEvents () {

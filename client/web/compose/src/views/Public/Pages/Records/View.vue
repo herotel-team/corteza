@@ -45,7 +45,7 @@
         :processing-delete="processingDelete"
         :processing-undelete="processingUndelete"
         :in-editing="inEditing"
-        :show-record-modal="showRecordModal"
+        :in-modal="inModal"
         :record-navigation="recordNavigation"
         :hide-back="!layoutButtons.has('back')"
         :hide-delete="!layoutButtons.has('delete')"
@@ -178,7 +178,7 @@ export default {
     },
 
     // Open record in a modal
-    showRecordModal: {
+    inModal: {
       type: Boolean,
       required: false,
     },
@@ -216,11 +216,11 @@ export default {
     },
 
     portalTopbarTitle () {
-      return this.showRecordModal ? 'record-modal-header' : 'topbar-title'
+      return this.inModal ? 'record-modal-header' : 'topbar-title'
     },
 
     portalRecordToolbar () {
-      return this.showRecordModal ? 'record-modal-footer' : 'toolbar'
+      return this.inModal ? 'record-modal-footer' : 'toolbar'
     },
 
     getUiEventResourceType () {
@@ -281,7 +281,7 @@ export default {
     },
 
     viewHasBack () {
-      if (this.showRecordModal) {
+      if (this.inModal) {
         return this.modalPreviousPages.length > 1
       }
 
@@ -318,6 +318,15 @@ export default {
       },
     },
 
+    'layout.handle': {
+      immediate: true,
+      handler (handle, oldHandle) {
+        if (handle !== oldHandle) {
+          this.inModal ? this.setModalLayoutHandle(handle) : this.setLayoutHandle(handle)
+        }
+      },
+    },
+
     currentRecordNavigation: {
       handler (rn, oldRn) {
         // To prevent hiding and then showing the record navigation
@@ -347,13 +356,15 @@ export default {
       popPreviousPages: 'ui/popPreviousPages',
       clearRecordSet: 'record/clearSet',
       popModalPreviousPage: 'ui/popModalPreviousPage',
+      setLayoutHandle: 'ui/setLayoutHandle',
+      setModalLayoutHandle: 'ui/setModalLayoutHandle',
     }),
 
     createEvents () {
       this.$root.$on('refetch-record-blocks', this.refetchRecordBlocks)
       this.$root.$on('record-field-change', this.validateBlocksVisibilityCondition)
 
-      if (this.showRecordModal) {
+      if (this.inModal) {
         this.$root.$on('bv::modal::hide', this.checkUnsavedChanges)
       }
     },
@@ -414,7 +425,7 @@ export default {
        * Not the best way since we can not always know where we
        * came from (and "where" is back).
       */
-      if (this.showRecordModal) {
+      if (this.inModal) {
         if (this.checkUnsavedChanges()) {
           this.popModalPreviousPage().then(({ recordID, recordPageID, edit }) => {
             this.$emit('on-modal-back', { recordID, recordPageID, pushModalPreviousPage: false, edit })
@@ -435,7 +446,7 @@ export default {
     handleAdd () {
       this.processing = true
 
-      if (this.showRecordModal) {
+      if (this.inModal) {
         if (this.checkUnsavedChanges()) {
           this.$emit('handle-record-redirect', { recordID: NoID, recordPageID: this.page.pageID, edit: true })
         }
@@ -447,7 +458,7 @@ export default {
     handleClone () {
       this.processing = true
 
-      if (this.showRecordModal) {
+      if (this.inModal) {
         if (this.checkUnsavedChanges()) {
           this.$emit('handle-record-redirect', { recordID: NoID, recordPageID: this.page.pageID, values: this.record.values, edit: true })
         }
@@ -459,7 +470,7 @@ export default {
     handleEdit () {
       this.processing = true
 
-      if (this.showRecordModal) {
+      if (this.inModal) {
         this.$emit('handle-record-redirect', { recordID: this.recordID, recordPageID: this.page.pageID, edit: true })
       } else {
         this.$router.push({ name: 'page.record.edit', params: { recordID: this.recordID, pageID: this.page.pageID, edit: true } })
@@ -469,7 +480,7 @@ export default {
     handleView () {
       this.processing = true
 
-      if (this.showRecordModal) {
+      if (this.inModal) {
         if (this.checkUnsavedChanges()) {
           this.$emit('handle-record-redirect', { recordID: this.recordID, recordPageID: this.page.pageID, edit: false })
         }
@@ -483,7 +494,7 @@ export default {
 
       this.processing = true
 
-      if (this.showRecordModal) {
+      if (this.inModal) {
         if (this.checkUnsavedChanges()) {
           this.$emit('handle-record-redirect', { recordID, recordPageID: this.page.pageID })
         }
@@ -593,7 +604,7 @@ export default {
       this.$root.$off('refetch-record-blocks', this.refetchRecordBlocks)
       this.$root.$off('record-field-change', this.validateBlocksVisibilityCondition)
 
-      if (this.showRecordModal) {
+      if (this.inModal) {
         this.$root.$off('bv::modal::hide', this.checkUnsavedChanges)
       }
     },

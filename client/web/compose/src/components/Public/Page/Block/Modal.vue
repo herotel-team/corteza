@@ -1,5 +1,6 @@
 <template>
   <b-modal
+    id="page-block-modal"
     v-model="showModal"
     scrollable
     body-class="card p-0"

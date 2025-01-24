@@ -577,6 +577,24 @@ export default {
         })
       },
     },
+
+    'page.handle': {
+      immediate: true,
+      handler (handle, oldHandle) {
+        if (handle !== oldHandle) {
+          this.setPageHandle(handle)
+        }
+      },
+    },
+
+    'layout.handle': {
+      immediate: true,
+      handler (handle, oldHandle) {
+        if (handle !== oldHandle) {
+          this.setLayoutHandle(handle)
+        }
+      },
+    },
   },
 
   mounted () {
@@ -587,6 +605,12 @@ export default {
   },
 
   beforeDestroy () {
+    // Edge case if we go from page builder to viewer the beforeDestroy is called after the view is mounted
+    if (!['page', 'page.record', 'page.record.create', 'page.record.edit'].includes(this.$route.name)) {
+      this.setPageHandle('')
+      this.setLayoutHandle('')
+    }
+
     this.destroyEvents()
     this.setDefaultValues()
   },
@@ -604,6 +628,8 @@ export default {
       createPageLayout: 'pageLayout/create',
       updatePageLayout: 'pageLayout/update',
       deletePageLayout: 'pageLayout/delete',
+      setPageHandle: 'ui/setPageHandle',
+      setLayoutHandle: 'ui/setLayoutHandle',
     }),
 
     fulfilEditRequest (blockID) {

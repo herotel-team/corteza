@@ -1,5 +1,5 @@
 <template>
-  <c-toolbar :class="{ 'shadow border-top': !showRecordModal }">
+  <c-toolbar :class="{ 'shadow border-top': !inModal }">
     <template #start>
       <b-button
         v-if="!(hideBack || settings.hideBack)"
@@ -226,7 +226,7 @@ export default {
       default: () => true,
     },
 
-    showRecordModal: {
+    inModal: {
       type: Boolean,
       required: false,
     },
@@ -284,7 +284,7 @@ export default {
     },
 
     backLabel () {
-      if (this.showRecordModal) {
+      if (this.inModal) {
         return this.hasBack ? this.$t('label.back') : this.$t('label.close')
       }
 

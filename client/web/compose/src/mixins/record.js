@@ -175,7 +175,7 @@ export default {
             this.toastWarning(this.$t('notification:record.validationWarnings'))
             this.processing = false
           } else {
-            if (this.showRecordModal) {
+            if (this.inModal) {
               this.$emit('handle-record-redirect', { recordID: this.record.recordID, recordPageID: this.page.pageID, edit: false })
 
               // If we are in a modal we need to refresh blocks not in modal

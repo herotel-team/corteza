@@ -116,6 +116,8 @@
 <script>
 import moment from 'moment'
 import CTranslationModal from '../components/Translator/CTranslatorModal'
+import { mapGetters, mapActions } from 'vuex'
+import { debounce } from 'lodash'
 import { components } from '@cortezaproject/corteza-vue'
 const { CToaster, CPrompts, CPermissionsModal, CTopbar, CSidebar } = components
 
@@ -153,6 +155,12 @@ export default {
   },
 
   computed: {
+    ...mapGetters({
+      namespaceSlug: 'ui/namespaceSlug',
+      pageHandle: 'ui/pageHandle',
+      layoutHandle: 'ui/layoutHandle',
+    }),
+
     user () {
       const { user } = this.$auth
       return user.name || user.handle || user.email || ''
@@ -169,6 +177,24 @@ export default {
     namespaceID () {
       const { params = {} } = this.$route
       return params.slug
+    },
+
+    bodyClass () {
+      const classes = []
+
+      if (this.namespaceSlug) {
+        classes.push(`namespace-${this.namespaceSlug}-body`)
+      }
+
+      if (this.pageHandle) {
+        classes.push(`page-${this.pageHandle}-body`)
+      }
+
+      if (this.layoutHandle) {
+        classes.push(`page-layout-${this.layoutHandle}-body`)
+      }
+
+      return classes.join(' ')
     },
   },
 
@@ -187,13 +213,16 @@ export default {
       immediate: true,
       handler (slug, oldSlug) {
         if (slug !== oldSlug) {
-          document.body.classList.add(`${slug}-body`)
-        }
-
-        if (oldSlug) {
-          document.body.classList.remove(`${oldSlug}-body`)
+          this.setNamespaceSlug(slug)
         }
       },
+    },
+
+    bodyClass: {
+      immediate: true,
+      handler: debounce(function (bodyClass) {
+        document.body.className = bodyClass
+      }, 300),
     },
   },
 
@@ -213,6 +242,10 @@ export default {
   },
 
   methods: {
+    ...mapActions({
+      setNamespaceSlug: 'ui/setNamespaceSlug',
+    }),
+
     checkNamespaceSidebar (showSidebar) {
       const defaultDisabledRoutes = [
         'namespaces',
