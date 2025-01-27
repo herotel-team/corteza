@@ -22,9 +22,8 @@
     "@fortawesome/free-solid-svg-icons": "^5.10.1",
     "@fortawesome/vue-fontawesome": "^0.1.9",
     "@panter/vue-i18next": "^0.15.0",
-    "axios": "^0.28.0",
+    "axios": "^1.7.9",
     "bootstrap-vue": "2.23.1",
-    "html-parse-stringify": "^3.0.1",
     "i18next": "^17.0.9",
     "i18next-browser-languagedetector": "^3.0.2",
     "lodash": "^4.17.21",
@@ -32,7 +31,6 @@
     "vue": "2.6.14",
     "vue-router": "^3.4.9",
     "vue-text-highlight": "^2.0.10",
-    "vuelayers": "^0.11.37",
     "vuex": "^3.1.1"
   },
   "devDependencies": {
