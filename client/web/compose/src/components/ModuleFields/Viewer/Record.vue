@@ -9,7 +9,7 @@
     <span
       v-for="(v, index) of formattedValue"
       :key="index"
-      :class="{ 'd-block': field.options.multiDelimiter === '\n', ...classes.reduce((a, v) => ({ ...a, [v]: true }), {}) }"
+      :class="{ 'd-block': field.options.multiDelimiter === '\n', 'mt-1': field.options.multiDelimiter === '\n' && index !== 0 }"
       @click.stop
     >
       <a

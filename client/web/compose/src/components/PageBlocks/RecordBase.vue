@@ -168,7 +168,7 @@ export default {
 
     fieldLayoutClass () {
       const classes = {
-        default: 'd-flex flex-column gap-2',
+        default: 'd-flex flex-column',
         noWrap: 'd-flex gap-2',
         wrap: 'row no-gutters',
       }

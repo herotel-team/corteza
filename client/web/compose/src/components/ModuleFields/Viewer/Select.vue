@@ -3,10 +3,10 @@
     <span
       v-for="(v, index) of value"
       :key="index"
-      :class="{ 'd-block mb-2': field.options.multiDelimiter === '\n' }"
+      :class="{ 'd-block': field.options.multiDelimiter === '\n' }"
     >
       <span
-        :class="{ 'badge badge-pill': field.options.displayType === 'badge' }"
+        :class="{ 'badge badge-pill': field.options.displayType === 'badge', 'mt-1': field.options.multiDelimiter === '\n' && index !== 0 }"
         :style="v.style"
       >
         {{ v.text }}
@@ -42,9 +42,9 @@ export default {
           v = []
         }
 
-        return v.map(v => this.resolveValue(v) || v).filter(Boolean)
+        return v.map(v => this.resolveValue(v) || v).filter(v => v && v.text)
       } else {
-        return [this.resolveValue(v) || v].filter(Boolean)
+        return [this.resolveValue(v) || v].filter(v => v && v.text)
       }
     },
   },
@@ -73,3 +73,9 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+.badge {
+  font-family: var(--font-medium);
+}
+</style>
