@@ -213,7 +213,7 @@ export default {
     fields () {
       return [
         ...[...this.module.fields].sort((a, b) =>
-          (a.label || a.name).localeCompare(b.label || b.name)
+          (a.label || a.name).localeCompare(b.label || b.name),
         ),
         ...this.module.systemFields().map((sf) => {
           sf.label = this.$t(`field:system.${sf.name}`)
@@ -360,7 +360,7 @@ export default {
           filter.record.values[`${filter.name}-end`]
 
         const field = this.mock.module.fields.find(
-          (f) => f.name === filter.name
+          (f) => f.name === filter.name,
         )
 
         this.mock.module.fields.push({ ...field, name: `${filter.name}-end` })
@@ -424,7 +424,7 @@ export default {
 
       if ((value[groupIndex] || {}).filter) {
         value[groupIndex].filter.push(
-          this.createDefaultFilter('AND', this.resolvedSelectedField)
+          this.createDefaultFilter('AND', this.resolvedSelectedField),
         )
       }
 
@@ -444,7 +444,7 @@ export default {
       value[value.length - 1].groupCondition =
         'AND'
       value.push(
-        this.createDefaultFilterGroup(undefined, this.resolvedSelectedField)
+        this.createDefaultFilterGroup(undefined, this.resolvedSelectedField),
       )
 
       this.$emit('input', value)

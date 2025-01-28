@@ -316,7 +316,7 @@ export default {
       return this.componentFilter.map(({ groupCondition, filter = [], name }) => {
         filter = filter.map(({ record, ...f }) => {
           if (!f.name) {
-            return
+            return undefined
           }
 
           if (record) {
@@ -382,7 +382,9 @@ export default {
     font-size: 0.9rem;
   }
 
-  .v-select, .field-operator, .field-editor {
+  .v-select,
+  .field-operator,
+  .field-editor {
     min-width: 120px;
   }
 

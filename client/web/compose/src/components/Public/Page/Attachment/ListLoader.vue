@@ -89,7 +89,6 @@
           :preview-style="{ width: 'unset', ...inlineCustomStyles(a) }"
           :preview-class="[
             !previewOptions.clickToView ? 'disable-zoom-cursor' : '',
-
           ]"
           :labels="previewLabels"
           class="mb-1"
@@ -244,6 +243,8 @@ export default {
               att.splice(index, 1, new shared.Attachment(a, this.baseURL))
             })
           }
+
+          return Promise.resolve([])
         }))
           .then(() => {
           // Filter out invalid/missing attachments

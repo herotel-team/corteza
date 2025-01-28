@@ -48,12 +48,12 @@
 </template>
 
 <script lang="js">
-import pdfjs from 'pdfjs-dist'
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.entry'
+import * as pdfjsLib from 'pdfjs-dist'
+import * as pdfjsWorker from 'pdfjs-dist/build/pdf.worker.mjs'
 import base from '../base.vue'
 import { makePlaceholder, makeFailedPage, Page, Document } from './helpers'
 
-pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString()
 
 function sleep (t) {
   return new Promise(resolve => setTimeout(resolve, t))
@@ -163,7 +163,12 @@ export default {
      * @returns {Promise<PDFDocumentProxy>}
      */
     async pdfjsLoad (src) {
-      return pdfjs.getDocument(src).promise
+      return pdfjsLib.getDocument({
+        url: src,
+        useWorkerFetch: true,
+        isEvalSupported: true,
+        useSystemFonts: true,
+      }).promise
     },
 
     /**

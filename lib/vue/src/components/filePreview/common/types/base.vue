@@ -8,7 +8,7 @@ export default {
 
     src: {
       required: true,
-      type: [ String, Object ],
+      type: [String, Object],
       default: undefined,
     },
 

@@ -220,7 +220,7 @@ export default {
 
       const filterSql = trimChar(
         trimChar(filterSqlArray.join(''), ' AND '),
-        ' OR '
+        ' OR ',
       )
 
       return filterSql
