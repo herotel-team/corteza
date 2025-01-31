@@ -282,9 +282,11 @@ fieldset.required {
 
 .sidebar-spacer {
   min-width: 0px;
+  transition: min-width 0.15s ease-in-out;
 
   &.expanded {
     min-width: calc(var(--sidebar-width));
+    transition: min-width 0.15s ease-in-out;
   }
 }
 
