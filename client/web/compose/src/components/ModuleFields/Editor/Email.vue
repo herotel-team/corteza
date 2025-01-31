@@ -42,7 +42,6 @@
       <b-form-input
         :value="value[ctx.index]"
         type="email"
-        class="mr-2"
         @input="setMultiValue($event, ctx.index)"
       />
     </multi>

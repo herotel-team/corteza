@@ -41,7 +41,6 @@
       <b-form-input
         :value="value[ctx.index]"
         type="url"
-        class="mr-2"
         :placeholder="$t('kind.url.example')"
         :formatter="fixUrl"
         lazy-formatter

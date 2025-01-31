@@ -44,21 +44,18 @@
       <c-rich-text-input
         v-if="field.options.useRichTextEditor"
         :value="value[ctx.index]"
-        class="mr-2"
         @input="setMultiValue($event, ctx.index)"
       />
 
       <b-form-textarea
         v-else-if="field.options.multiLine"
         :value="value[ctx.index]"
-        class="mr-2"
         @input="setMultiValue($event, ctx.index)"
       />
 
       <b-form-input
         v-else
         :value="value[ctx.index]"
-        class="mr-2"
         @input="setMultiValue($event, ctx.index)"
       />
     </multi>
@@ -67,7 +64,6 @@
       <c-rich-text-input
         v-if="field.options.useRichTextEditor"
         v-model="value"
-        class="mr-2"
         :labels="{
           urlPlaceholder: $t('content.urlPlaceholder'),
           ok: $t('content.ok'),
@@ -77,13 +73,11 @@
       <b-form-textarea
         v-else-if="field.options.multiLine"
         v-model="value"
-        class="mr-2"
       />
 
       <b-form-input
         v-else
         v-model="value"
-        class="mr-2"
       />
 
       <errors :errors="errors" />

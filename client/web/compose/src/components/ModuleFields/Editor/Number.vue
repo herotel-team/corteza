@@ -48,7 +48,6 @@
           autocomplete="off"
           type="number"
           number
-          class="mr-2"
           @input="setMultiValue($event, ctx.index)"
         />
       </b-input-group>
