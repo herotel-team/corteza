@@ -156,7 +156,18 @@ func (mb *messageBus) Push(q string, p []byte) {
 }
 
 func (mb *messageBus) Register(ctx context.Context, qs *types.Queue) {
-	mb.queues[qs.Name] = qs
+	// @fixme add register here
+	if qs == nil {
+		return
+	}
+
+	switch qs.Consumer.GetConsumerType() {
+	case string(types.ConsumerServicebus):
+		// @fixme: handle queue creation
+		// _ = mb.qservicer.CreateQueue(ctx, qs.Name)
+	default:
+		mb.queues[qs.Name] = qs
+	}
 }
 
 func (mb *messageBus) queue(q string) *types.Queue {
@@ -187,7 +198,11 @@ func (mb *messageBus) initQueues(ctx context.Context) error {
 		c, err := mb.initConsumer(ctx, q.Queue, q.Consumer)
 
 		if err != nil {
-			mb.logger.Warn("could not init consumer for queue", zap.String("queue", q.Queue), zap.Error(err))
+			mb.logger.Warn("could not init consumer for queue",
+				zap.String("consumer", q.Consumer),
+				zap.String("queue", q.Queue),
+				zap.Error(err),
+			)
 			continue
 		}
 
@@ -212,8 +227,14 @@ func (mb *messageBus) initConsumer(ctx context.Context, q string, c string) (cns
 		cns = consumer.NewEventbusConsumer(q, mb.qservicer)
 		return
 
+	// case string(types.ConsumerStore):
+	// cns = consumer.NewStoreConsumer(q, mb.qservicer)
+	// return
+
+	// case string(types.ConsumerServicebus):
 	case string(types.ConsumerStore):
-		cns = consumer.NewStoreConsumer(q, mb.qservicer)
+		// @fixme: add switch case reference
+		cns, err = consumer.NewServicebusConsumer(ctx, mb.logger, mb.opts.ServicebusConnectionString, q, mb.qservicer)
 		return
 
 	default:
