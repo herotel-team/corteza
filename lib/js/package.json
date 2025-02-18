@@ -23,7 +23,7 @@
     "hex-rgb": "^4.1.0",
     "lodash": "^4.17.15",
     "minimalist": "^1.0.0",
-    "minimatch": "^3.0.5",
+    "minimatch": "^4.0.0",
     "moment": "2.30.1",
     "numeral": "^2.0.6",
     "pino": "^5.16.0"
@@ -64,7 +64,7 @@
     "node-watch": "^0.6.3",
     "nodemon": "^2.0.2",
     "nyc": "^15.0.0",
-    "rollup": "^1.29.0",
+    "rollup": "^2.79.2",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-typescript2": "^0.25.3",
     "source-map-support": "^0.5.16",
