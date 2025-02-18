@@ -20,5 +20,11 @@ type (
 	QueueServicer interface {
 		QueueStorer
 		QueueEventBuilder
+		// QueueServicebuser
 	}
+
+	// @fixme the reference for the queue create/register -> server/pkg/messagebus/service.go
+	// QueueServicebuser interface {
+	// 	CreateQueue(context.Context, string) error
+	// }
 )

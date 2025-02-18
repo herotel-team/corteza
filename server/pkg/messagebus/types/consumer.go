@@ -5,11 +5,12 @@ import (
 )
 
 const (
-	ConsumerCorteza  ConsumerType = "corteza"
-	ConsumerNoop     ConsumerType = "noop"
-	ConsumerRedis    ConsumerType = "redis"
-	ConsumerStore    ConsumerType = "store"
-	ConsumerEventbus ConsumerType = "eventbus"
+	ConsumerCorteza    ConsumerType = "corteza"
+	ConsumerNoop       ConsumerType = "noop"
+	ConsumerRedis      ConsumerType = "redis"
+	ConsumerStore      ConsumerType = "store"
+	ConsumerEventbus   ConsumerType = "eventbus"
+	ConsumerServicebus ConsumerType = "servicebus"
 )
 
 type (
@@ -17,6 +18,7 @@ type (
 
 	Consumer interface {
 		Write(ctx context.Context, p []byte) error
+		GetConsumerType() string
 	}
 )
 
@@ -26,5 +28,6 @@ func ConsumerTypes() []ConsumerType {
 		ConsumerEventbus,
 		ConsumerRedis,
 		ConsumerStore,
+		ConsumerServicebus,
 	}
 }
