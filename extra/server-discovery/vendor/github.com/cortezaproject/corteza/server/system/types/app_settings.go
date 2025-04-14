@@ -238,6 +238,8 @@ type (
 		// Integration gateway settings
 		Apigw ApigwSettings `kv:"apigw" json:"apigw"`
 
+		CodeSnippets []struct{ CodeSnippet } `kv:"code-snippets" json:"codeSnippets"`
+
 		// UserInterface settings
 		UI struct {
 			MainLogo string `kv:"main-logo" json:"mainLogo"`
@@ -415,6 +417,12 @@ type (
 		Values string `json:"values"`
 	}
 
+	CodeSnippet struct {
+		Name   string `json:"name"`
+		Script string `json:"script"`
+        Enabled bool `json:"enabled"`
+	}
+
 	SmtpServers struct {
 		Host          string `json:"host"`
 		Port          int    `json:"port,string"`
@@ -464,10 +472,10 @@ type (
 // to avoid any unintended corruption or leaks
 func (cs AppSettings) WithDefaults() *AppSettings {
 	if len(strings.TrimSpace(cs.UI.IconLogo)) == 0 {
-		cs.UI.IconLogo = "/assets/favicon32x32.png"
+		cs.UI.IconLogo = "/assets/icon.svg"
 	}
 	if len(strings.TrimSpace(cs.UI.MainLogo)) == 0 {
-		cs.UI.MainLogo = "/assets/logo.png"
+		cs.UI.MainLogo = "/assets/logo.svg"
 	}
 
 	return &cs
