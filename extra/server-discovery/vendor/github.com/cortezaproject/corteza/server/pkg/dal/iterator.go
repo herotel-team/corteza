@@ -72,13 +72,16 @@ func IteratorEncodeJSON(ctx context.Context, w io.Writer, iter Iterator, initTar
 
 // PreLoadCursor into iterator and check it exist then return the cursor
 // @todo this should be move to the Iterator
-func PreLoadCursor(ctx context.Context, iter Iterator, limit uint, reverse bool, r ValueGetter) (out *filter.PagingCursor, err error) {
-	if reverse {
-		out, err = iter.BackCursor(r)
-	} else {
-		out, err = iter.ForwardCursor(r)
+func PreLoadCursor(ctx context.Context, iter Iterator, limit uint, reverse bool, r ValueGetter, fx func(Iterator) (bool, error)) (out *filter.PagingCursor, err error) {
+	makeCursor := func() (*filter.PagingCursor, error) {
+		if reverse {
+			return iter.BackCursor(r)
+		} else {
+			return iter.ForwardCursor(r)
+		}
 	}
 
+	out, err = makeCursor()
 	if err != nil {
 		return
 	}
@@ -88,11 +91,25 @@ func PreLoadCursor(ctx context.Context, iter Iterator, limit uint, reverse bool,
 		return nil, nil
 	}
 
-	if !iter.Next(ctx) {
-		out = nil
-	}
+	for {
+		if !iter.Next(ctx) {
+			out = nil
+			return
+		}
 
-	return
+		ok, err := fx(iter)
+		if err != nil {
+			return nil, err
+		}
+
+		if ok {
+			return out, err
+
+			// // @todo Skip the things we don't have access to; could cause some edge cases so probably not
+			// // It adds some performance since we skip unneeded stuff but could some records change in the mean time?
+			// // return makeCursor()
+		}
+	}
 }
 
 // IteratorSorting return iterator sorting

@@ -162,7 +162,8 @@ type (
 	}
 
 	LimitOpt struct {
-		SystemUsers int `env:"LIMIT_SYSTEM_USERS"`
+		SystemUsers          int `env:"LIMIT_SYSTEM_USERS"`
+		RecordCountPerModule int `env:"LIMIT_RECORD_COUNT_PER_MODULE"`
 	}
 
 	LocaleOpt struct {
@@ -347,7 +348,7 @@ func HttpServer() (o *HttpServerOpt) {
 		ApiBaseUrl:             "/",
 		WebappBaseUrl:          "/",
 		WebappBaseDir:          "./webapp/public",
-		WebappList:             "admin,compose,workflow,reporter",
+		WebappList:             "admin,compose,workflow,reporter,privacy",
 		SslTerminated:          isSecure(),
 		WebConsoleEnabled:      false,
 		WebConsoleUsername:     "admin",
@@ -1083,7 +1084,7 @@ func Attachment() (o *AttachmentOpt) {
 		AvatarMaxFileSize:             1000000,
 		AvatarInitialsFontPath:        "fonts/Poppins-Regular.ttf",
 		AvatarInitialsBackgroundColor: "#F3F3F3",
-		AvatarInitialsColor:           "#162425",
+		AvatarInitialsColor:           "#0B344E",
 	}
 
 	// Custom defaults
